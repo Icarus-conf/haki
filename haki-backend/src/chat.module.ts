@@ -4,6 +4,8 @@ import { AuthModule } from './auth/auth.module';
 import { ChatGateway } from './chat.gateway';
 import { Message } from './chat/entities/message.entity';
 import { Reaction } from './chat/entities/reaction.entity';
+import { MessagesController } from './chat/messages.controller';
+import { MessagesService } from './chat/messages.service';
 import { Friendship } from './users/entities/friendship.entity';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
@@ -15,7 +17,8 @@ import { UsersModule } from './users/users.module';
         AuthModule,
         UsersModule,
     ],
-    providers: [ChatGateway],
-    exports: [ChatGateway],
+    controllers: [MessagesController],
+    providers: [ChatGateway, MessagesService],
+    exports: [ChatGateway, MessagesService],
 })
 export class ChatModule { }
