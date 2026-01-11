@@ -43,8 +43,21 @@ class _ChatViewState extends State<ChatView> {
       }
     });
 
+    // Listen for chat errors
+    final chat = context.read<ChatProvider>();
+    chat.errorStream.listen((error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ChatProvider>();
       _scrollToBottom();
     });
   }

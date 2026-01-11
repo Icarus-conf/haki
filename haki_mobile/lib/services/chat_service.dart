@@ -22,6 +22,9 @@ class ChatService {
   Stream<dynamic> get friendRequests => _friendRequestController.stream;
   Stream<int> get deletedMessages => _deleteController.stream;
   Stream<Map<String, dynamic>> get typingEvents => _typingController.stream;
+  Stream<dynamic> get messageErrors => _messageErrorController.stream;
+
+  final _messageErrorController = StreamController<dynamic>.broadcast();
 
   void connect(String token) {
     socket = IO.io(
@@ -66,6 +69,10 @@ class ChatService {
         'username': data['username'],
         'isTyping': data['isTyping'],
       });
+    });
+
+    socket!.on('message_error', (data) {
+      _messageErrorController.add(data);
     });
 
     socket!.onDisconnect((_) => log('Disconnected from Chat Socket'));
@@ -125,5 +132,6 @@ class ChatService {
     _friendRequestController.close();
     _deleteController.close();
     _typingController.close();
+    _messageErrorController.close();
   }
 }

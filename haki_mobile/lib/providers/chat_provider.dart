@@ -136,6 +136,7 @@ class ChatProvider extends ChangeNotifier {
   List<MessageModel> get messages => _messageManager.messages;
   bool get isHistoryLoading => _messageManager.isHistoryLoading;
   bool get isRecipientTyping => _messageManager.isRecipientTyping;
+  Stream<String> get errorStream => _messageManager.errorStream;
 
   UserModel? get activeRecipient {
     final recipient = _messageManager.activeRecipient;

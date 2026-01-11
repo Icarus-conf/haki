@@ -26,6 +26,8 @@ class MessageManager extends ChangeNotifier {
   int? _loadingForRecipientId; // Track which recipient we're loading for (null = global chat)
   final Map<int, Timer> _pendingDeletes = {}; // messageId -> Timer
   final Map<int, bool> _typingUsers = {}; // userId -> isTyping
+  final _errorController = StreamController<String>.broadcast();
+  Stream<String> get errorStream => _errorController.stream;
 
   MessageManager({
     required ApiService api,
@@ -216,6 +218,15 @@ class MessageManager extends ChangeNotifier {
       _typingUsers[userId] = isTyping;
       notifyListeners();
     });
+
+    // Message Errors
+    _chat.messageErrors.listen((data) {
+      if (data != null && data['error'] != null) {
+        _errorController.add(data['error']);
+        // If we want to remove the optimistic message, we'd need more info (tempId) which the backend error might not provide yet.
+        // For now, we just notify the user.
+      }
+    });
   }
 
   /// Select a recipient for chat
@@ -399,5 +410,11 @@ class MessageManager extends ChangeNotifier {
       timer.cancel();
     }
     _pendingDeletes.clear();
+  }
+
+  @override
+  void dispose() {
+    _errorController.close();
+    super.dispose();
   }
 }
