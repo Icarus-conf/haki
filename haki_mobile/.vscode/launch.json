@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "chat_mobile Android",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "emulator-5554"
+        },
+        {
+            "name": "chat_mobile iOS",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "0FFF7721-3040-4389-9BEE-DB9D6B83C235"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "chat_mobile (Android + iOS)",
+            "configurations": [
+                "chat_mobile Android",
+                "chat_mobile iOS"
+            ]
+        }
+    ]
+}
