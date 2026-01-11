@@ -79,6 +79,9 @@ class ChatService {
     String? mediaIv,
     Map<String, dynamic>? mediaKeys,
     String? attachmentType,
+    int? replyToMessageId,
+    String? replyToSender,
+    String? replyToMessage,
   }) {
     socket?.emit('message', {
       'message': text,
@@ -88,6 +91,9 @@ class ChatService {
       if (mediaIv != null) 'mediaIv': mediaIv,
       if (mediaKeys != null) 'mediaKeys': mediaKeys,
       if (attachmentType != null) 'attachmentType': attachmentType,
+      if (replyToMessageId != null) 'replyToMessageId': replyToMessageId,
+      if (replyToSender != null) 'replyToSender': replyToSender,
+      if (replyToMessage != null) 'replyToMessage': replyToMessage,
     });
   }
 

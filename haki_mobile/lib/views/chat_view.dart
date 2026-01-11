@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:chat_mobile/models/message_model.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +25,7 @@ class _ChatViewState extends State<ChatView> {
   final _scrollController = ScrollController();
   final _focusNode = FocusNode();
   String? _pendingAttachmentPath;
+  MessageModel? _replyToMessage;
 
   @override
   void initState() {
@@ -66,10 +68,17 @@ class _ChatViewState extends State<ChatView> {
   void _send() {
     final text = _controller.text.trim();
     if (text.isNotEmpty || _pendingAttachmentPath != null) {
-      context.read<ChatProvider>().sendMessage(text, attachmentPath: _pendingAttachmentPath);
+      context.read<ChatProvider>().sendMessage(
+        text,
+        attachmentPath: _pendingAttachmentPath,
+        replyToMessageId: _replyToMessage?.id,
+        replyToSender: _replyToMessage?.sender,
+        replyToMessage: _replyToMessage?.message,
+      );
       _controller.clear();
       setState(() {
         _pendingAttachmentPath = null;
+        _replyToMessage = null;
       });
       // Unfocus to close keyboard and stop typing indicator
       _focusNode.unfocus();
@@ -144,7 +153,29 @@ class _ChatViewState extends State<ChatView> {
                             index < reversedMsgs.length - 1 &&
                             reversedMsgs[index + 1].senderId == m.senderId;
 
-                        return MessageBubble(message: m, isMe: isMe, isFollowing: isFollowing);
+                        return Dismissible(
+                          key: Key('msg_${m.id ?? m.tempId ?? index}'),
+                          direction: isMe
+                              ? DismissDirection.endToStart
+                              : DismissDirection.startToEnd,
+                          confirmDismiss: (direction) async {
+                            setState(() {
+                              _replyToMessage = m;
+                            });
+                            _focusNode.requestFocus();
+                            return false; // Don't actually dismiss
+                          },
+                          background: Container(
+                            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                            padding: EdgeInsets.only(left: isMe ? 0 : 20, right: isMe ? 20 : 0),
+                            child: Icon(
+                              Icons.reply,
+                              color: Theme.of(context).primaryColor,
+                              size: 28,
+                            ),
+                          ),
+                          child: MessageBubble(message: m, isMe: isMe, isFollowing: isFollowing),
+                        );
                       },
                     ),
             ),
@@ -164,6 +195,12 @@ class _ChatViewState extends State<ChatView> {
               onCancelAttachment: () {
                 setState(() {
                   _pendingAttachmentPath = null;
+                });
+              },
+              replyToMessage: _replyToMessage,
+              onCancelReply: () {
+                setState(() {
+                  _replyToMessage = null;
                 });
               },
             ),

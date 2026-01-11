@@ -132,6 +132,9 @@ class MessageManager extends ChangeNotifier {
                 mediaKeys: m.mediaKeys,
                 attachmentType: m.attachmentType,
                 reactions: m.reactions,
+                replyToMessageId: m.replyToMessageId,
+                replyToSender: m.replyToSender,
+                replyToMessage: m.replyToMessage,
               );
             } catch (e) {
               dev.log('Error decrypting message ${m.id}: $e', name: 'MessageManager');
@@ -191,6 +194,9 @@ class MessageManager extends ChangeNotifier {
           mediaIv: m.mediaIv,
           mediaKeys: m.mediaKeys,
           attachmentType: m.attachmentType,
+          replyToMessageId: m.replyToMessageId,
+          replyToSender: m.replyToSender,
+          replyToMessage: m.replyToMessage,
         );
 
         if (index != -1) {
@@ -241,7 +247,13 @@ class MessageManager extends ChangeNotifier {
   }
 
   /// Send a message
-  Future<void> sendMessage(String text, {String? attachmentPath}) async {
+  Future<void> sendMessage(
+    String text, {
+    String? attachmentPath,
+    int? replyToMessageId,
+    String? replyToSender,
+    String? replyToMessage,
+  }) async {
     final me = _getMeCallback();
     if (me == null) return;
 
@@ -314,6 +326,9 @@ class MessageManager extends ChangeNotifier {
       mediaIv: mediaIv,
       mediaKeys: mediaKeys,
       attachmentType: attachmentType,
+      replyToMessageId: replyToMessageId,
+      replyToSender: replyToSender,
+      replyToMessage: replyToMessage,
     );
 
     _messages.add(optimisticMessage);
@@ -327,6 +342,9 @@ class MessageManager extends ChangeNotifier {
       mediaIv: mediaIv,
       mediaKeys: mediaKeys,
       attachmentType: attachmentType,
+      replyToMessageId: replyToMessageId,
+      replyToSender: replyToSender,
+      replyToMessage: replyToMessage,
     );
   }
 

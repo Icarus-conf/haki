@@ -147,8 +147,19 @@ class ChatProvider extends ChangeNotifier {
   void selectRecipient(UserModel? user) => _messageManager.selectRecipient(user);
   void sendTypingNotification(bool isTyping) => _messageManager.sendTypingNotification(isTyping);
 
-  Future<void> sendMessage(String text, {String? attachmentPath}) =>
-      _messageManager.sendMessage(text, attachmentPath: attachmentPath);
+  Future<void> sendMessage(
+    String text, {
+    String? attachmentPath,
+    int? replyToMessageId,
+    String? replyToSender,
+    String? replyToMessage,
+  }) => _messageManager.sendMessage(
+    text,
+    attachmentPath: attachmentPath,
+    replyToMessageId: replyToMessageId,
+    replyToSender: replyToSender,
+    replyToMessage: replyToMessage,
+  );
 
   void deleteMessageLocally(MessageModel message) => _messageManager.deleteMessageLocally(message);
 

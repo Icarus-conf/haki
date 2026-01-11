@@ -107,6 +107,47 @@ class MessageBubble extends StatelessWidget {
                               ),
                             ),
                           ),
+                        if (message.replyToMessage != null) ...[
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            margin: const EdgeInsets.only(bottom: 8),
+                            decoration: BoxDecoration(
+                              color: isMe
+                                  ? Colors.white.withValues(alpha: 0.2)
+                                  : Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border(
+                                left: BorderSide(
+                                  color: isMe ? Colors.white : Theme.of(context).primaryColor,
+                                  width: 3,
+                                ),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  message.replyToSender ?? 'Unknown',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: isMe ? Colors.white70 : Theme.of(context).primaryColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  message.replyToMessage!,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isMe ? Colors.white60 : Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         Text(
                           message.message,
                           style: TextStyle(

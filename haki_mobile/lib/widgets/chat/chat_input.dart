@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../models/message_model.dart';
 import '../voice_recorder.dart';
 import 'attachment_preview.dart';
 
@@ -12,6 +13,8 @@ class ChatInput extends StatelessWidget {
   final VoidCallback onVoiceCancel;
   final String? pendingAttachmentUrl;
   final VoidCallback onCancelAttachment;
+  final MessageModel? replyToMessage;
+  final VoidCallback onCancelReply;
 
   const ChatInput({
     super.key,
@@ -23,6 +26,8 @@ class ChatInput extends StatelessWidget {
     required this.onVoiceCancel,
     this.pendingAttachmentUrl,
     required this.onCancelAttachment,
+    this.replyToMessage,
+    required this.onCancelReply,
   });
 
   @override
@@ -30,6 +35,55 @@ class ChatInput extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (replyToMessage != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color ?? Colors.white,
+              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Replying to ${replyToMessage!.sender}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        replyToMessage!.message,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 20),
+                  onPressed: onCancelReply,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          ),
         if (pendingAttachmentUrl != null)
           AttachmentPreview(attachmentPath: pendingAttachmentUrl!, onCancel: onCancelAttachment),
         Container(

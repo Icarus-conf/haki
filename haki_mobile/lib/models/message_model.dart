@@ -16,6 +16,9 @@ class MessageModel {
   final Map<String, dynamic>? mediaKeys;
   final String? attachmentType; // 'image' or 'voice'
   final List<ReactionModel> reactions;
+  final int? replyToMessageId;
+  final String? replyToSender;
+  final String? replyToMessage;
 
   MessageModel({
     this.id,
@@ -33,6 +36,9 @@ class MessageModel {
     this.mediaKeys,
     this.attachmentType,
     this.reactions = const [],
+    this.replyToMessageId,
+    this.replyToSender,
+    this.replyToMessage,
   });
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
@@ -54,6 +60,9 @@ class MessageModel {
       reactions:
           (json['reactions'] as List<dynamic>?)?.map((r) => ReactionModel.fromJson(r)).toList() ??
           [],
+      replyToMessageId: json['replyToMessageId'],
+      replyToSender: json['replyToSender'],
+      replyToMessage: json['replyToMessage'],
     );
   }
 
