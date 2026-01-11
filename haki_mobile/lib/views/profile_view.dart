@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/chat_provider.dart';
 import '../services/api_service.dart';
+import '../utils/toast_utils.dart';
 import '../widgets/full_page_loading.dart';
 import '../widgets/loading_indicator.dart';
 import 'login_view.dart';
@@ -46,16 +47,12 @@ class _ProfileViewState extends State<ProfileView> {
           final chat = context.read<ChatProvider>();
           await chat.uploadAvatar(image.path);
           if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Avatar updated!')));
+            ToastUtils.showToast(context, 'Avatar updated!');
           }
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Failed to upload avatar')));
+          ToastUtils.showToast(context, 'Failed to upload avatar', isError: true);
         }
       } finally {
         setState(() => _isLoading = false);
@@ -78,17 +75,13 @@ class _ProfileViewState extends State<ProfileView> {
       }
 
       if (success && mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Profile updated successfully!')));
+        ToastUtils.showToast(context, 'Profile updated successfully!');
       } else {
         throw Exception('Failed to update');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Failed to update profile')));
+        ToastUtils.showToast(context, 'Failed to update profile', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

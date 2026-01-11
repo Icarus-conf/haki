@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../providers/chat_provider.dart';
 import '../../services/api_service.dart';
+import '../../utils/toast_utils.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final UserModel? recipient;
@@ -130,12 +131,10 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
                   final chat = Provider.of<ChatProvider>(context, listen: false);
                   final success = await chat.blockUser(recipient!.id);
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          success ? 'User blocked successfully' : 'Failed to block user',
-                        ),
-                      ),
+                    ToastUtils.showToast(
+                      context,
+                      success ? 'User blocked successfully' : 'Failed to block user',
+                      isError: !success,
                     );
                     if (success) {
                       Navigator.pop(context); // Go back to home

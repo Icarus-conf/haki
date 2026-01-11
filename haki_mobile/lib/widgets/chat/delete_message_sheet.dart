@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/message_model.dart';
 import '../../providers/chat_provider.dart';
-import 'undo_countdown_snackbar.dart';
+import '../../utils/toast_utils.dart';
 
 class DeleteMessageSheet {
   static void show(BuildContext context, MessageModel message) {
@@ -33,17 +33,10 @@ class DeleteMessageSheet {
                 final chat = context.read<ChatProvider>();
                 chat.deleteMessageLocally(message);
 
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Colors.grey[900],
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                    margin: const EdgeInsets.only(bottom: 100, left: 24, right: 24),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    content: UndoCountdownSnackbar(onUndo: () => chat.undoDelete(message)),
-                    duration: const Duration(seconds: 5),
-                  ),
+                ToastUtils.showToast(
+                  context,
+                  'Deleting message...',
+                  onUndo: () => chat.undoDelete(message),
                 );
               },
             ),

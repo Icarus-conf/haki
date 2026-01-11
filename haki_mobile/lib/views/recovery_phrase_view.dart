@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../providers/chat_provider.dart';
+import '../utils/toast_utils.dart';
 
 class RecoveryPhraseView extends StatefulWidget {
   const RecoveryPhraseView({super.key});
@@ -72,13 +73,11 @@ class _RecoveryPhraseViewState extends State<RecoveryPhraseView> {
       );
 
       if (mounted && result['isSuccess'] == true) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('QR code saved to gallery!')));
+        ToastUtils.showToast(context, 'QR code saved to gallery!');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save: $e')));
+        ToastUtils.showToast(context, 'Failed to save: $e', isError: true);
       }
     }
   }
@@ -257,9 +256,7 @@ class _RecoveryPhraseViewState extends State<RecoveryPhraseView> {
                           child: ElevatedButton.icon(
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: _mnemonic!));
-                              ScaffoldMessenger.of(
-                                context,
-                              ).showSnackBar(const SnackBar(content: Text('Copied to clipboard!')));
+                              ToastUtils.showToast(context, 'Copied to clipboard!');
                             },
                             icon: const Icon(Icons.copy),
                             label: const Text('Copy'),

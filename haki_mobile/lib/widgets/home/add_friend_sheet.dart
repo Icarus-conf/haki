@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/chat_provider.dart';
+import '../../utils/toast_utils.dart';
 import '../loading_indicator.dart';
 
 class AddFriendSheet {
@@ -101,19 +102,10 @@ class AddFriendSheet {
 
                                 if (context.mounted) {
                                   Navigator.pop(ctx);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        success ? 'Request sent!' : 'Failed to send',
-                                        style: const TextStyle(fontWeight: FontWeight.w600),
-                                      ),
-                                      backgroundColor: success ? Colors.green : Colors.red,
-                                      behavior: SnackBarBehavior.floating,
-                                      margin: const EdgeInsets.all(20),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
+                                  ToastUtils.showToast(
+                                    context,
+                                    success ? 'Request sent!' : 'Failed to send',
+                                    isError: !success,
                                   );
                                 }
                               } catch (e) {

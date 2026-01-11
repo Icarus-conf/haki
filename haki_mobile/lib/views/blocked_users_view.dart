@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/user_model.dart';
 import '../providers/chat_provider.dart';
 import '../services/api_service.dart';
+import '../utils/toast_utils.dart';
 
 class BlockedUsersView extends StatefulWidget {
   const BlockedUsersView({super.key});
@@ -50,9 +51,7 @@ class _BlockedUsersViewState extends State<BlockedUsersView> {
       final chat = context.read<ChatProvider>();
       await chat.unblockUser(user.id);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${user.displayName ?? user.username} unblocked')));
+        ToastUtils.showToast(context, '${user.displayName ?? user.username} unblocked');
         _loadBlockedUsers();
       }
     }

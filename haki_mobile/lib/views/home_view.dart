@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/chat_provider.dart';
 import '../utils/story_helper.dart';
+import '../utils/toast_utils.dart';
 import '../widgets/home/add_friend_sheet.dart';
 import '../widgets/home/custom_refresh_indicator_builder.dart';
 import '../widgets/home/empty_state_widget.dart';
@@ -176,9 +177,7 @@ class _HomeViewState extends State<HomeView> {
                                         onPressed: () {
                                           Navigator.pop(ctx);
                                           chat.removeFriend(user.id);
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Friend removed')),
-                                          );
+                                          ToastUtils.showToast(context, 'Friend removed');
                                         },
                                         style: TextButton.styleFrom(foregroundColor: Colors.red),
                                         child: const Text('Remove'),

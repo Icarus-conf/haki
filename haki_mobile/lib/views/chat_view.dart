@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/chat_provider.dart';
+import '../utils/toast_utils.dart';
 import '../widgets/chat/chat_app_bar.dart';
 import '../widgets/chat/chat_input.dart';
 import '../widgets/chat/message_bubble.dart';
@@ -47,13 +48,7 @@ class _ChatViewState extends State<ChatView> {
     final chat = context.read<ChatProvider>();
     chat.errorStream.listen((error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        ToastUtils.showToast(context, error, isError: true);
       }
     });
 

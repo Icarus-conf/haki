@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/chat_provider.dart';
 import '../services/api_service.dart';
+import '../utils/toast_utils.dart';
 import '../widgets/loading_indicator.dart';
 
 class LoginView extends StatefulWidget {
@@ -48,7 +49,7 @@ class _LoginViewState extends State<LoginView> {
         // Login flow - no onboarding
         final success = await chat.login(_userController.text, _passController.text);
         if (!success && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login failed')));
+          ToastUtils.showToast(context, 'Login failed', isError: true);
         }
       } else {
         // Registration flow - show onboarding
@@ -95,20 +96,16 @@ class _LoginViewState extends State<LoginView> {
             // App.dart will see me != null AND needsOnboarding == true
             // and switch to RecoveryOnboardingView automatically.
           } else if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Registered but login failed')));
+            ToastUtils.showToast(context, 'Registered but login failed', isError: true);
             setState(() => _isLogin = true);
           }
         } else if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Registration failed')));
+          ToastUtils.showToast(context, res['message'] ?? 'Registration failed', isError: true);
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ToastUtils.showToast(context, 'Error: $e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -120,9 +117,7 @@ class _LoginViewState extends State<LoginView> {
     final words = mnemonic.split(RegExp(r'\s+'));
 
     if (words.length != 12) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Recovery phrase must be exactly 12 words')));
+      ToastUtils.showToast(context, 'Recovery phrase must be exactly 12 words', isError: true);
       return;
     }
 
@@ -136,13 +131,15 @@ class _LoginViewState extends State<LoginView> {
       );
 
       if (!success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Restore failed. Check your credentials and phrase.')),
+        ToastUtils.showToast(
+          context,
+          'Restore failed. Check your credentials and phrase.',
+          isError: true,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ToastUtils.showToast(context, 'Error: $e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
