@@ -139,7 +139,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         mediaKeys: m.mediaKeys,
         attachmentType: m.attachmentType,
         timestamp: this.toLocalISO(m.createdAt),
-        reactions: m.reactions || []
+        reactions: m.reactions || [],
+        replyToMessageId: m.replyToMessageId,
+        replyToSender: m.replyToSender,
+        replyToMessage: m.replyToMessage,
       }))
     });
   }
@@ -184,7 +187,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('message')
   async handleMessage(
-    @MessageBody() data: { message: string, attachmentUrl?: string, recipientId?: number, tempId?: string, mediaIv?: string, mediaKeys?: any, attachmentType?: string },
+    @MessageBody() data: {
+      message: string,
+      attachmentUrl?: string,
+      recipientId?: number,
+      tempId?: string,
+      mediaIv?: string,
+      mediaKeys?: any,
+      attachmentType?: string,
+      replyToMessageId?: number,
+      replyToSender?: string,
+      replyToMessage?: string,
+    },
     @ConnectedSocket() client: Socket,
   ) {
     const userPayload = client.data.user;
@@ -211,6 +225,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       attachmentType: data.attachmentType,
       sender: sender,
       recipient: recipient ?? undefined,
+      replyToMessageId: data.replyToMessageId,
+      replyToSender: data.replyToSender,
+      replyToMessage: data.replyToMessage,
     });
     await this.messageRepository.save(message);
     this.logger.debug(`[Message] Persisted message ID ${message.id}`);
@@ -229,7 +246,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       timestamp: this.toLocalISO(message.createdAt),
       recipientId: data.recipientId || null,
       tempId: data.tempId || null,
-      reactions: message.reactions || []
+      reactions: message.reactions || [],
+      replyToMessageId: data.replyToMessageId,
+      replyToSender: data.replyToSender,
+      replyToMessage: data.replyToMessage,
     };
 
     if (data.recipientId) {

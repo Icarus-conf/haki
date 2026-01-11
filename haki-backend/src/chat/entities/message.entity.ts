@@ -31,6 +31,15 @@ export class Message {
     @OneToMany(() => Reaction, reaction => reaction.message, { eager: true })
     reactions: Reaction[];
 
+    @Column({ nullable: true })
+    replyToMessageId: number;
+
+    @Column({ nullable: true })
+    replyToSender: string;
+
+    @Column({ nullable: true })
+    replyToMessage: string;
+
     @CreateDateColumn()
     createdAt: Date;
 }
