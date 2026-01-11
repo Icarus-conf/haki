@@ -4,10 +4,11 @@ import 'dart:developer' as dev;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/message_model.dart';
 import '../models/user_model.dart';
 
 class ApiService {
-  static String baseUrl = 'http://192.168.1.7:3000';
+  static String baseUrl = 'http://197.161.174.231:3000';
   final _storage = const FlutterSecureStorage();
 
   Future<String?> getToken() => _storage.read(key: 'token');
@@ -241,5 +242,19 @@ class ApiService {
       return jsonDecode(responseData);
     }
     return null;
+  }
+
+  // Shared Media
+  Future<List<MessageModel>> getSharedMedia(int recipientId) async {
+    final token = await getToken();
+    final res = await http.get(
+      Uri.parse('$baseUrl/messages/shared-media/$recipientId'),
+      headers: _headers(token),
+    );
+    if (res.statusCode == 200) {
+      final List data = jsonDecode(res.body);
+      return data.map((m) => MessageModel.fromJson(m)).toList();
+    }
+    return [];
   }
 }

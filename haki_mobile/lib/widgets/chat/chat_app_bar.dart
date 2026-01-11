@@ -75,7 +75,20 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
               },
             ),
       actions: [
-        if (recipient != null)
+        if (recipient != null) ...[
+          IconButton(
+            icon: const Icon(Icons.photo_library_outlined, color: Colors.white),
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                '/shared-media',
+                arguments: {
+                  'recipientId': recipient!.id,
+                  'recipientName': recipient!.displayName ?? recipient!.username,
+                },
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.call, color: Colors.white),
             onPressed: () {
@@ -87,6 +100,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
               );
             },
           ),
+        ],
       ],
     );
   }

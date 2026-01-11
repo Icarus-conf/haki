@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'providers/chat_provider.dart';
 import 'views/login_view.dart';
 import 'views/responsive_home.dart';
+import 'views/shared_media_view.dart';
 import 'widgets/full_page_loading.dart';
 
 class ChatApp extends StatefulWidget {
@@ -118,6 +119,18 @@ class _ChatAppState extends State<ChatApp> {
                             )
                           : const ResponsiveHome(key: ValueKey('home'))))
               : const FullPageLoading(message: 'Initializing...'),
+          onGenerateRoute: (settings) {
+            if (settings.name == '/shared-media') {
+              final args = settings.arguments as Map<String, dynamic>;
+              return MaterialPageRoute(
+                builder: (context) => SharedMediaView(
+                  recipientId: args['recipientId'],
+                  recipientName: args['recipientName'],
+                ),
+              );
+            }
+            return null;
+          },
         );
       },
     );
