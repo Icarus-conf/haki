@@ -179,11 +179,8 @@ class ChatProvider extends ChangeNotifier {
   Future<void> fetchRequests() => _friendManager.fetchRequests();
 
   Future<bool> sendFriendRequest(String email) => _friendManager.sendFriendRequest(email);
-
-  Future<bool> acceptRequest(int requestId) => _friendManager.acceptRequest(requestId);
-
-  Future<bool> declineRequest(int requestId) => _friendManager.declineRequest(requestId);
-
+  Future<bool> acceptFriendRequest(int requestId) => _friendManager.acceptRequest(requestId);
+  Future<bool> declineFriendRequest(int requestId) => _friendManager.declineRequest(requestId);
   Future<bool> removeFriend(int id) async {
     final success = await _friendManager.removeFriend(id);
     if (success && activeRecipient?.id == id) {
@@ -191,6 +188,10 @@ class ChatProvider extends ChangeNotifier {
     }
     return success;
   }
+
+  Future<bool> blockUser(int id) => _friendManager.blockUser(id);
+
+  Future<bool> unblockUser(int id) => _friendManager.unblockUser(id);
 
   // ============================================================================
   // CALL MANAGER DELEGATES
@@ -248,6 +249,7 @@ class ChatProvider extends ChangeNotifier {
     await Future.wait([
       _friendManager.fetchFriends(),
       _friendManager.fetchRequests(),
+      _friendManager.fetchBlockedUsers(),
       _storyManager.fetchStories(),
     ]);
   }

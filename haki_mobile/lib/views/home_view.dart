@@ -125,8 +125,8 @@ class _HomeViewState extends State<HomeView> {
                     SliverToBoxAdapter(
                       child: FriendRequestsSection(
                         requests: chat.requests,
-                        onAccept: chat.acceptRequest,
-                        onDecline: chat.declineRequest,
+                        onAccept: chat.acceptFriendRequest,
+                        onDecline: chat.declineFriendRequest,
                       ),
                     ),
 

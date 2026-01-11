@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_mobile/views/call_view.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/user_model.dart';
+import '../../providers/chat_provider.dart';
 import '../../services/api_service.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -99,6 +101,61 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               );
             },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            onSelected: (value) async {
+              if (value == 'block') {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Block User'),
+                    content: Text(
+                      'Are you sure you want to block ${recipient!.displayName ?? recipient!.username}?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Block', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm == true && context.mounted) {
+                  final chat = Provider.of<ChatProvider>(context, listen: false);
+                  final success = await chat.blockUser(recipient!.id);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          success ? 'User blocked successfully' : 'Failed to block user',
+                        ),
+                      ),
+                    );
+                    if (success) {
+                      Navigator.pop(context); // Go back to home
+                    }
+                  }
+                }
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'block',
+                child: Row(
+                  children: [
+                    Icon(Icons.block, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Block User', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ],

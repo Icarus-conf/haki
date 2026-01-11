@@ -8,7 +8,7 @@ import '../models/message_model.dart';
 import '../models/user_model.dart';
 
 class ApiService {
-  static String baseUrl = 'http://197.161.174.231:3000';
+  static String baseUrl = 'http://192.168.1.64:3000';
   final _storage = const FlutterSecureStorage();
 
   Future<String?> getToken() => _storage.read(key: 'token');
@@ -159,6 +159,37 @@ class ApiService {
       body: jsonEncode({'friendId': friendId}),
     );
     return res.statusCode == 200 || res.statusCode == 201;
+  }
+
+  // Block/Unblock
+  Future<bool> blockUser(int userId) async {
+    final token = await getToken();
+    final res = await http.post(
+      Uri.parse('$baseUrl/users/block'),
+      headers: _headers(token),
+      body: jsonEncode({'userId': userId}),
+    );
+    return res.statusCode == 200 || res.statusCode == 201;
+  }
+
+  Future<bool> unblockUser(int userId) async {
+    final token = await getToken();
+    final res = await http.post(
+      Uri.parse('$baseUrl/users/unblock'),
+      headers: _headers(token),
+      body: jsonEncode({'userId': userId}),
+    );
+    return res.statusCode == 200 || res.statusCode == 201;
+  }
+
+  Future<List<UserModel>> getBlockedUsers() async {
+    final token = await getToken();
+    final res = await http.get(Uri.parse('$baseUrl/users/blocked'), headers: _headers(token));
+    if (res.statusCode == 200) {
+      final List data = jsonDecode(res.body);
+      return data.map((u) => UserModel.fromJson(u)).toList();
+    }
+    return [];
   }
 
   Future<UserModel?> updateProfile({String? displayName, String? bio, String? publicKey}) async {

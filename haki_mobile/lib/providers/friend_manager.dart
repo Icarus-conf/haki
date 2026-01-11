@@ -15,6 +15,7 @@ class FriendManager extends ChangeNotifier {
   List<UserModel> _users = [];
   List<int> _onlineUserIds = [];
   List<FriendRequestModel> _requests = [];
+  List<int> _blockedUserIds = [];
 
   FriendManager({required ApiService api, required ChatService chat}) : _api = api, _chat = chat;
 
@@ -22,6 +23,7 @@ class FriendManager extends ChangeNotifier {
   List<UserModel> get users => _users;
   List<int> get onlineUserIds => _onlineUserIds;
   List<FriendRequestModel> get requests => _requests;
+  List<int> get blockedUserIds => _blockedUserIds;
 
   /// Get a specific user by ID
   UserModel? getUserById(int userId) {
@@ -36,7 +38,8 @@ class FriendManager extends ChangeNotifier {
   void setupListeners() {
     // Online Users
     _chat.onlineUsers.listen((ids) {
-      _onlineUserIds = ids;
+      // Filter blocked users
+      _onlineUserIds = ids.where((id) => !_blockedUserIds.contains(id)).toList();
       notifyListeners();
     });
 
@@ -84,6 +87,13 @@ class FriendManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Fetch blocked users from server
+  Future<void> fetchBlockedUsers() async {
+    final List<UserModel> blocked = await _api.getBlockedUsers();
+    _blockedUserIds = blocked.map((u) => u.id).toList();
+    notifyListeners();
+  }
+
   /// Send a friend request
   Future<bool> sendFriendRequest(String email) async {
     try {
@@ -126,10 +136,31 @@ class FriendManager extends ChangeNotifier {
     return success;
   }
 
+  /// Block a user
+  Future<bool> blockUser(int userId) async {
+    final success = await _api.blockUser(userId);
+    if (success) {
+      await fetchBlockedUsers();
+      await fetchFriends(); // Refresh friends list to remove the blocked user
+    }
+    return success;
+  }
+
+  /// Unblock a user
+  Future<bool> unblockUser(int userId) async {
+    final success = await _api.unblockUser(userId);
+    if (success) {
+      await fetchBlockedUsers();
+      await fetchFriends();
+    }
+    return success;
+  }
+
   /// Clear all data
   void clear() {
     _users = [];
     _onlineUserIds = [];
     _requests = [];
+    _blockedUserIds = [];
   }
 }

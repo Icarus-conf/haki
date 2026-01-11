@@ -441,6 +441,35 @@ class _ProfileViewState extends State<ProfileView> {
                             decoration: BoxDecoration(
                               boxShadow: [
                                 BoxShadow(
+                                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            height: 56,
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).cardTheme.color ?? Colors.white,
+                                foregroundColor: Colors.red,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  side: BorderSide(color: Colors.red.withValues(alpha: 0.2)),
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/blocked-users');
+                              },
+                              icon: const Icon(Icons.block),
+                              label: const Text('Blocked Users'),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Container(
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
                                   color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
                                   blurRadius: 12,
                                   offset: const Offset(0, 6),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/chat_provider.dart';
+import 'views/blocked_users_view.dart';
 import 'views/login_view.dart';
 import 'views/responsive_home.dart';
 import 'views/shared_media_view.dart';
@@ -128,6 +129,8 @@ class _ChatAppState extends State<ChatApp> {
                   recipientName: args['recipientName'],
                 ),
               );
+            } else if (settings.name == '/blocked-users') {
+              return MaterialPageRoute(builder: (context) => const BlockedUsersView());
             }
             return null;
           },
