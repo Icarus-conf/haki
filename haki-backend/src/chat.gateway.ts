@@ -219,7 +219,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const isBlocked = await this.usersService.isBlocked(userId, data.recipientId);
       if (isBlocked) {
         this.logger.debug(`[Message] Blocked: User ${userId} and ${data.recipientId}`);
-        return; // Silently reject the message
+        client.emit('message_error', {
+          recipientId: data.recipientId,
+          error: 'Message not sent. You have been blocked by this user or you have blocked them.'
+        });
+        return;
       }
     }
 
