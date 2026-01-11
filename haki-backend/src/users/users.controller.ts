@@ -136,5 +136,26 @@ export class UsersController {
         this.chatGateway.notifyFriendRemoved(parseInt(req.user.sub), body.friendId);
         return { success: true };
     }
+
+    // Block/Unblock endpoints
+    @UseGuards(JwtAuthGuard)
+    @Post('block')
+    async blockUser(@Request() req: any, @Body() body: { userId: number }) {
+        await this.usersService.blockUser(parseInt(req.user.sub), body.userId);
+        return { success: true };
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('unblock')
+    async unblockUser(@Request() req: any, @Body() body: { userId: number }) {
+        await this.usersService.unblockUser(parseInt(req.user.sub), body.userId);
+        return { success: true };
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('blocked')
+    async getBlockedUsers(@Request() req: any) {
+        return this.usersService.getBlockedUsers(parseInt(req.user.sub));
+    }
 }
 

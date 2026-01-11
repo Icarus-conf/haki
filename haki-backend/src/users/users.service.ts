@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message } from '../chat/entities/message.entity';
+import { BlockedUser } from './entities/blocked-user.entity';
 import { FriendRequest } from './entities/friend-request.entity';
 import { Friendship } from './entities/friendship.entity';
 import { User } from './entities/user.entity';
@@ -17,6 +18,8 @@ export class UsersService {
         private friendshipRepository: Repository<Friendship>,
         @InjectRepository(Message)
         private messageRepository: Repository<Message>,
+        @InjectRepository(BlockedUser)
+        private blockedUserRepository: Repository<BlockedUser>,
     ) { }
 
     async findOne(username: string): Promise<User | null> {
@@ -41,7 +44,25 @@ export class UsersService {
             relations: ['user1', 'user2']
         });
 
-        const friendsWithChat = await Promise.all(friendships.map(async (friendship) => {
+        // Fetch blocks where user is involved
+        const blocks = await this.blockedUserRepository.find({
+            where: [
+                { blocker: { id } },
+                { blocked: { id } }
+            ],
+            relations: ['blocker', 'blocked']
+        });
+
+        const blockedIds = new Set(blocks.map(b =>
+            b.blocker.id === id ? b.blocked.id : b.blocker.id
+        ));
+
+        const activeFriendships = friendships.filter(f => {
+            const friendId = f.user1.id === id ? f.user2.id : f.user1.id;
+            return !blockedIds.has(friendId);
+        });
+
+        const friendsWithChat = await Promise.all(activeFriendships.map(async (friendship) => {
             // Determine which user is the friend
             const isUser1 = friendship.user1.id === id;
             const friend = isUser1 ? friendship.user2 : friendship.user1;
@@ -76,6 +97,10 @@ export class UsersService {
 
         if (!sender || !recipient) throw new Error('User or Friend not found');
         if (sender.id === recipient.id) throw new Error('Cannot add yourself');
+
+        // Check if blocked
+        const isBlocked = await this.isBlocked(sender.id, recipient.id);
+        if (isBlocked) throw new Error('Cannot send friend request');
 
         // Check if already friends
         const existingFriendship = await this.friendshipRepository.findOne({
@@ -201,5 +226,58 @@ export class UsersService {
     async updateStatus(id: number, statusMessage: string): Promise<User | null> {
         await this.usersRepository.update(id, { statusMessage });
         return this.findOneById(id);
+    }
+
+    // Block/Unblock functionality
+    async blockUser(blockerId: number, blockedId: number): Promise<void> {
+        const blocker = await this.findOneById(blockerId);
+        const blocked = await this.findOneById(blockedId);
+
+        if (!blocker || !blocked) throw new Error('User not found');
+        if (blockerId === blockedId) throw new Error('Cannot block yourself');
+
+        // Check if already blocked
+        const existing = await this.blockedUserRepository.findOne({
+            where: { blocker: { id: blockerId }, blocked: { id: blockedId } }
+        });
+
+        if (existing) throw new Error('User already blocked');
+
+        const block = this.blockedUserRepository.create({
+            blocker,
+            blocked,
+        });
+
+        await this.blockedUserRepository.save(block);
+
+        // Remove friendship if exists
+        await this.removeFriend(blockerId, blockedId);
+    }
+
+    async unblockUser(blockerId: number, blockedId: number): Promise<void> {
+        await this.blockedUserRepository.delete({
+            blocker: { id: blockerId },
+            blocked: { id: blockedId },
+        });
+    }
+
+    async getBlockedUsers(userId: number): Promise<User[]> {
+        const blocks = await this.blockedUserRepository.find({
+            where: { blocker: { id: userId } },
+            relations: ['blocked'],
+        });
+
+        return blocks.map(b => b.blocked);
+    }
+
+    async isBlocked(userId: number, targetId: number): Promise<boolean> {
+        const block = await this.blockedUserRepository.findOne({
+            where: [
+                { blocker: { id: userId }, blocked: { id: targetId } },
+                { blocker: { id: targetId }, blocked: { id: userId } },
+            ],
+        });
+
+        return !!block;
     }
 }

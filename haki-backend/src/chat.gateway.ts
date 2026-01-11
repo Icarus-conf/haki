@@ -214,6 +214,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (data.recipientId) {
       recipient = await this.userRepository.findOne({ where: { id: data.recipientId } });
       if (!recipient) return;
+
+      // Check if users have blocked each other
+      const isBlocked = await this.usersService.isBlocked(userId, data.recipientId);
+      if (isBlocked) {
+        this.logger.debug(`[Message] Blocked: User ${userId} and ${data.recipientId}`);
+        return; // Silently reject the message
+      }
     }
 
     // Persist message

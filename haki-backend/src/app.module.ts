@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { Message } from './chat/entities/message.entity';
 import { Reaction } from './chat/entities/reaction.entity';
+import { BlockedUser } from './users/entities/blocked-user.entity';
 import { FriendRequest } from './users/entities/friend-request.entity';
 import { Friendship } from './users/entities/friendship.entity';
 import { User } from './users/entities/user.entity';
@@ -33,7 +34,7 @@ import { StoriesModule } from './stories/stories.module';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Message, FriendRequest, Friendship, Story, Reaction],
+        entities: [User, Message, FriendRequest, Friendship, Story, Reaction, BlockedUser],
         synchronize: true, // Only for development
       }),
       inject: [ConfigService],
