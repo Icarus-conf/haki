@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Chat App</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --chat-bg: #f1f5f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --glass: rgba(255, 255, 255, 0.7);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #app {
+            width: 1000px;
+            height: 800px;
+            background: var(--sidebar-bg);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-radius: 24px;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #auth-screen {
+            position: absolute;
+            inset: 0;
+            background: white;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .auth-container {
+            width: 320px;
+            padding: 40px;
+            border-radius: 24px;
+            background: var(--bg);
+            text-align: center;
+        }
+
+        .auth-container h2 {
+            margin-bottom: 24px;
+        }
+
+        .auth-container input {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .auth-container button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* App Layout */
+        #sidebar {
+            width: 300px;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+        }
+
+        #chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--chat-bg);
+        }
+
+        /* Sidebar Parts */
+        .profile-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            object-fit: cover;
+        }
+
+        .profile-info h4 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .profile-info p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .user-list-section {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .user-list-section h5 {
+            margin-bottom: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 12px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .user-item:hover {
+            background: var(--bg);
+        }
+
+        .user-item .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #94a3b8;
+        }
+
+        .user-item.online .status-dot {
+            background: #22c55e;
+        }
+
+        /* Chat Components */
+        #chat-header {
+            padding: 16px 24px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #history {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .msg-bubble {
+            display: flex;
+            gap: 12px;
+            max-width: 80%;
+        }
+
+        .msg-bubble.me {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .msg-content {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .me .msg-content {
+            background: var(--primary);
+            color: white;
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 4px;
+        }
+
+        .msg-content .name {
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .msg-content .text {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .msg-content .img-msg {
+            max-width: 200px;
+            border-radius: 8px;
+            margin-top: 8px;
+            display: block;
+        }
+
+        .msg-content .time {
+            font-size: 10px;
+            margin-top: 4px;
+            opacity: 0.7;
+            text-align: right;
+        }
+
+        #chat-input-area {
+            padding: 20px 24px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #chat-input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-family: inherit;
+        }
+
+        .btn-icon {
+            padding: 10px;
+            background: var(--bg);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        #typing-indicator {
+            font-size: 12px;
+            color: var(--text-muted);
+            height: 20px;
+            padding: 0 24px;
+            margin-bottom: 8px;
+        }
+
+        /* Settings Modal */
+        #settings-modal {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 400px;
+            padding: 32px;
+            border-radius: 24px;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app">
+        <!-- Auth Screen -->
+        <div id="auth-screen">
+            <div class="auth-container" id="auth-container">
+                <h2>Welcome to Chat</h2>
+                <input type="text" id="username" placeholder="Username">
+                <input type="email" id="email" placeholder="Email" style="display: none;">
+                <input type="password" id="password" placeholder="Password">
+                <div id="auth-buttons">
+                    <button id="signin-btn" onclick="auth('login')">Sign In</button>
+                    <button id="create-btn" onclick="toggleAuthMode(true)"
+                        style="background: transparent; color: var(--primary); border: 1px solid var(--primary);">Create
+                        Account</button>
+                </div>
+                <div id="register-buttons" style="display: none;">
+                    <button onclick="auth('register')">Register</button>
+                    <button onclick="toggleAuthMode(false)"
+                        style="background: transparent; color: var(--primary); border: none; font-size: 14px;">Back to
+                        Login</button>
+                </div>
+                <p id="auth-status" style="font-size: 12px; color: #ef4444; margin-top: 12px;"></p>
+            </div>
+        </div>
+
+        <!-- Onboarding Screen -->
+        <div id="onboarding-screen"
+            style="display: none; position: absolute; inset: 0; background: white; z-index: 150; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+            <div class="auth-container" style="width: 400px; padding: 40px; background: #f8fafc; border-radius: 24px;">
+                <h2 style="margin-bottom: 8px;">Complete Your Profile</h2>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 32px;">Let others know who you are!
+                </p>
+
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <img id="onboard-avatar-preview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=new"
+                        class="avatar" style="width: 100px; height: 100px; margin-bottom: 12px;">
+                    <br>
+                    <label for="onboard-avatar-input"
+                        style="cursor: pointer; color: var(--primary); font-weight: 600; font-size: 14px;">Upload
+                        Picture
+                        <input type="file" id="onboard-avatar-input" onchange="previewOnboardAvatar(event)"
+                            style="display: none;">
+                    </label>
+                </div>
+
+                <input type="text" id="onboard-display-name" placeholder="Display Name (e.g. John Doe)"
+                    style="width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <input type="text" id="onboard-bio" placeholder="Bio (e.g. Coding is fun!)"
+                    style="width: 100%; padding: 12px; margin-bottom: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
+
+                <button onclick="finishOnboarding()"
+                    style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 600;">Let's
+                    Go!</button>
+                <button onclick="skipOnboarding()"
+                    style="width: 100%; margin-top: 12px; background: transparent; color: var(--text-muted); border: none; cursor: pointer; font-size: 14px;">Skip
+                    for now</button>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <div class="profile-card" onclick="openSettings()">
+                <img id="my-avatar" src="" class="avatar" alt="">
+                <div class="profile-info">
+                    <h4 id="my-name">Loading...</h4>
+                    <p id="my-bio">Loading bio...</p>
+                </div>
+                <button class="btn-icon" style="position: absolute; right: 8px; top: 8px; padding: 4px;">⚙️</button>
+            </div>
+
+            <div class="user-list-section">
+                <div id="global-chat-btn" onclick="selectRecipient(null)" class="user-item"
+                    style="margin-bottom: 20px; border: 1px solid #e0e7ff; background: #f5f7ff;">
+                    <div class="avatar"
+                        style="display: flex; align-items: center; justify-content: center; background: var(--primary); color: white;">
+                        🌍</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 14px;">Global Chat</div>
+                        <div style="font-size: 11px; color: var(--primary);">Public group</div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <input type="email" id="friend-email" placeholder="Friend's email"
+                            style="flex: 1; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 14px;">
+                        <button onclick="addFriend()" class="btn-primary"
+                            style="padding: 8px 12px; border-radius: 12px; font-size: 14px;">Add</button>
+                    </div>
+                    <h5 style="margin-bottom: 8px;">My Friends</h5>
+                </div>
+                <div style="margin-bottom: 24px;" id="requests-section" style="display: none;">
+                    <h5 style="margin-bottom: 8px; color: var(--primary);">Friend Requests</h5>
+                    <div id="requests-list">
+                        <!-- Requests will be injected here -->
+                    </div>
+                </div>
+
+                <div id="user-list">
+                    <!-- Friends will be injected here -->
+                </div>
+            </div>
+
+            <button onclick="logout()"
+                style="margin-top: 20px; padding: 12px; background: #fee2e2; color: #ef4444; border: none; border-radius: 12px; cursor: pointer; font-weight: 600;">Sign
+                Out</button>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div id="chat-main">
+            <div id="chat-header">
+                <h3 id="chat-title">Global Chat</h3>
+            </div>
+
+            <div id="history">
+                <!-- Messages will be injected here -->
+            </div>
+
+            <div id="typing-indicator"></div>
+
+            <div id="chat-input-area">
+                <label for="file-upload" class="btn-icon">
+                    📎
+                    <input type="file" id="file-upload" onchange="uploadMessageImage(event)" style="display: none;">
+                </label>
+                <input type="text" id="message-input" placeholder="Aa" oninput="handleTypingInput()">
+                <button onclick="sendMessage()" class="btn-icon btn-primary">Send</button>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" onclick="event.target === this && closeSettings()">
+            <div class="modal-content">
+                <h3>Profile Settings</h3>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img id="setting-avatar" src="" class="avatar" style="width: 80px; height: 80px;">
+                    <br>
+                    <input type="file" id="avatar-upload" onchange="uploadAvatar(event)" style="margin-top: 12px;">
+                </div>
+                <input type="text" id="setting-display-name" placeholder="Display Name">
+                <input type="text" id="setting-bio" placeholder="Bio">
+                <button onclick="saveProfile()"
+                    style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 600;">Save
+                    Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CryptoManager {
+            static async generateKeyPair() {
+                return window.crypto.subtle.generateKey(
+                    { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" },
+                    true, ["encrypt", "decrypt"]
+                );
+            }
+
+            static async exportKey(key, format = "spki") {
+                const exported = await window.crypto.subtle.exportKey(format, key);
+                return btoa(String.fromCharCode(...new Uint8Array(exported)));
+            }
+
+            static async importKey(base64, type = "public") {
+                // Strip PEM headers/footers and any whitespace/newlines
+                const cleanBase64 = base64
+                    .replace(/-----BEGIN (RSA )?(PUBLIC|PRIVATE) KEY-----/g, "")
+                    .replace(/-----END (RSA )?(PUBLIC|PRIVATE) KEY-----/g, "")
+                    .replace(/\s+/g, "");
+
+                const binary = atob(cleanBase64);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+                try {
+                    return await window.crypto.subtle.importKey(
+                        type === "public" ? "spki" : "pkcs8",
+                        bytes.buffer,
+                        { name: "RSA-OAEP", hash: "SHA-256" },
+                        true,
+                        type === "public" ? ["encrypt"] : ["decrypt"]
+                    );
+                } catch (e) {
+                    // If it's a public key and SPKI failed, it might be a raw PKCS#1 key
+                    // We attempt to parse it and import as JWK for maximum compatibility
+                    if (type === "public") {
+                        try {
+                            const jwk = this.derToJwk(bytes);
+                            return await window.crypto.subtle.importKey(
+                                "jwk", jwk, { name: "RSA-OAEP", hash: "SHA-256" }, true, ["encrypt"]
+                            );
+                        } catch (inner) {
+                            console.error("RSA Fallback fail", inner);
+                        }
+                    }
+                    throw e;
+                }
+            }
+
+            static derToJwk(bytes) {
+                let pos = 0;
+                if (bytes[pos++] !== 0x30) throw new Error("Not a SEQUENCE");
+                let len = bytes[pos++];
+                if (len & 0x80) pos += (len & 0x7f);
+
+                function readInteger() {
+                    if (bytes[pos++] !== 0x02) throw new Error("Not an INTEGER");
+                    let ilen = bytes[pos++];
+                    if (ilen & 0x80) {
+                        let n = ilen & 0x7f;
+                        ilen = 0;
+                        for (let i = 0; i < n; i++) ilen = (ilen << 8) | bytes[pos++];
+                    }
+                    let res = bytes.slice(pos, pos + ilen);
+                    pos += ilen;
+                    while (res[0] === 0x00 && res.length > 1) res = res.slice(1);
+                    return btoa(String.fromCharCode(...res)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+                }
+
+                const n = readInteger();
+                const e = readInteger();
+                return { kty: "RSA", n, e, alg: "RSA-OAEP-256", ext: true };
+            }
+
+            static async encrypt(text, recipientPublicKey, senderPublicKey = null) {
+                const data = new TextEncoder().encode(text);
+                const aesKey = await window.crypto.subtle.generateKey(
+                    { name: "AES-GCM", length: 256 }, true, ["encrypt"]
+                );
+                const iv = window.crypto.getRandomValues(new Uint8Array(12));
+                const encryptedData = await window.crypto.subtle.encrypt(
+                    { name: "AES-GCM", iv }, aesKey, data
+                );
+
+                const exportedAesKey = await window.crypto.subtle.exportKey("raw", aesKey);
+                // Standardize: export AES key as Base64 string before RSA encrypting (matches Flutter)
+                const aesKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(exportedAesKey)));
+                const aesKeyBytes = new TextEncoder().encode(aesKeyBase64);
+
+                const keys = {};
+                const encryptedKeyR = await window.crypto.subtle.encrypt({ name: "RSA-OAEP" }, recipientPublicKey, aesKeyBytes);
+                keys["r"] = btoa(String.fromCharCode(...new Uint8Array(encryptedKeyR)));
+
+                if (senderPublicKey) {
+                    const encryptedKeyS = await window.crypto.subtle.encrypt({ name: "RSA-OAEP" }, senderPublicKey, aesKeyBytes);
+                    keys["s"] = btoa(String.fromCharCode(...new Uint8Array(encryptedKeyS)));
+                }
+
+                return JSON.stringify({
+                    data: btoa(String.fromCharCode(...new Uint8Array(encryptedData))),
+                    iv: btoa(String.fromCharCode(...iv)),
+                    keys
+                });
+            }
+
+            static async decrypt(payloadStr, privateKey) {
+                try {
+                    const { data, iv, keys } = JSON.parse(payloadStr);
+                    const cipherBytes = new Uint8Array(atob(data).split('').map(c => c.charCodeAt(0)));
+                    const ivBytes = new Uint8Array(atob(iv).split('').map(c => c.charCodeAt(0)));
+
+                    // Try to decrypt any of the available encrypted keys
+                    for (const role in keys) {
+                        try {
+                            const encKeyBytes = new Uint8Array(atob(keys[role]).split('').map(c => c.charCodeAt(0)));
+                            const decryptedAesKeyBytes = await window.crypto.subtle.decrypt({ name: "RSA-OAEP" }, privateKey, encKeyBytes);
+
+                            // 1. Convert decrypted bytes back to Base64 string
+                            const aesKeyBase64 = new TextDecoder().decode(decryptedAesKeyBytes);
+                            // 2. Decode Base64 to get raw AES key bytes
+                            const rawAesKeyBinary = atob(aesKeyBase64);
+                            const rawAesKey = new Uint8Array(rawAesKeyBinary.length);
+                            for (let i = 0; i < rawAesKeyBinary.length; i++) rawAesKey[i] = rawAesKeyBinary.charCodeAt(i);
+
+                            const aesKey = await window.crypto.subtle.importKey("raw", rawAesKey.buffer, { name: "AES-GCM" }, true, ["decrypt"]);
+                            const decryptedData = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv: ivBytes }, aesKey, cipherBytes);
+                            return new TextDecoder().decode(decryptedData);
+                        } catch (e) {
+                            console.error("Decryption role failed", role, e);
+                            continue;
+                        }
+                    }
+                    return "[Encrypted Message]";
+                } catch (e) {
+                    return payloadStr; // Not JSON or wrong format, return as is
+                }
+            }
+        }
+        const API_URL = 'http://localhost:3000';
+        let socket;
+        let token = localStorage.getItem('token');
+        let me = null;
+        let myPrivateKey = null;
+        let onlineUserIds = [];
+        let isTyping = false;
+        let typingTimeout;
+        let lastTypingEmit = 0;
+        let activeRecipient = null;
+        let onlineUsersData = [];
+        let typingUsers = new Map(); // username -> recipientId
+
+        if (token) {
+            initApp();
+        }
+
+        function toggleAuthMode(isRegister) {
+            document.getElementById('email').style.display = isRegister ? 'block' : 'none';
+            document.getElementById('auth-buttons').style.display = isRegister ? 'none' : 'block';
+            document.getElementById('register-buttons').style.display = isRegister ? 'block' : 'none';
+        }
+
+        async function auth(type) {
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
+            const emailInput = document.getElementById('email').value;
+            const status = document.getElementById('auth-status');
+
+            try {
+                const body = { username: usernameInput, password: passwordInput };
+                if (type === 'register') body.email = emailInput;
+
+                const res = await fetch(`${API_URL}/auth/${type}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    if (type === 'login') {
+                        token = data.access_token;
+                        localStorage.setItem('token', token);
+                        initApp();
+                    } else {
+                        // Success register -> Auto login
+                        await auth('login');
+                        initApp(true); // isNewUser = true
+                    }
+                } else {
+                    status.innerText = data.message || 'Auth failed';
+                }
+            } catch (e) {
+                status.innerText = 'Server error - Is the backend running?';
+            }
+        }
+
+        async function initApp(isNewUser = false) {
+            document.getElementById('auth-screen').style.display = 'none';
+            await fetchMyProfile();
+
+            // E2EE Key Management
+            const privKeyBase64 = localStorage.getItem(`priv_key_${me.username}`);
+            if (privKeyBase64) {
+                myPrivateKey = await CryptoManager.importKey(privKeyBase64, "private");
+            } else {
+                const keyPair = await CryptoManager.generateKeyPair();
+                myPrivateKey = keyPair.privateKey;
+                const pubKeyBase = await CryptoManager.exportKey(keyPair.publicKey, "spki");
+                const privKeyBase = await CryptoManager.exportKey(keyPair.privateKey, "pkcs8");
+                localStorage.setItem(`priv_key_${me.username}`, privKeyBase);
+                // Upload public key
+                await fetch(`${API_URL}/users/profile`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ publicKey: pubKeyBase })
+                });
+            }
+
+            connectSocket();
+            await fetchFriends();
+            await fetchRequests();
+
+            if (isNewUser) {
+                document.getElementById('onboarding-screen').style.display = 'flex';
+                document.getElementById('onboard-avatar-preview').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${me.username}`;
+            }
+        }
+
+        function previewOnboardAvatar(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => document.getElementById('onboard-avatar-preview').src = e.target.result;
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function finishOnboarding() {
+            const displayName = document.getElementById('onboard-display-name').value;
+            const bio = document.getElementById('onboard-bio').value;
+            const avatarFile = document.getElementById('onboard-avatar-input').files[0];
+
+            if (displayName || bio) {
+                await fetch(`${API_URL}/users/profile`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ displayName, bio })
+                });
+            }
+
+            if (avatarFile) {
+                const formData = new FormData();
+                formData.append('file', avatarFile);
+                await fetch(`${API_URL}/users/avatar`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+            }
+
+            await fetchMyProfile();
+            document.getElementById('onboarding-screen').style.display = 'none';
+        }
+
+        function skipOnboarding() {
+            document.getElementById('onboarding-screen').style.display = 'none';
+        }
+
+        async function fetchMyProfile() {
+            const res = await fetch(`${API_URL}/users/me`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            me = await res.json();
+            updateProfileUI();
+        }
+
+        function updateProfileUI() {
+            document.getElementById('my-name').innerText = me.displayName || me.username;
+            document.getElementById('my-bio').innerText = me.bio || 'Add a bio...';
+            document.getElementById('my-avatar').src = me.avatarUrl ? `${API_URL}${me.avatarUrl}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=${me.username}`;
+
+            document.getElementById('setting-display-name').value = me.displayName || '';
+            document.getElementById('setting-bio').value = me.bio || '';
+            document.getElementById('setting-avatar').src = document.getElementById('my-avatar').src;
+        }
+
+        async function fetchFriends() {
+            const res = await fetch(`${API_URL}/users/friends`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const friends = await res.json();
+            renderUserList(friends);
+        }
+
+        async function addFriend() {
+            const emailInput = document.getElementById('friend-email');
+            const email = emailInput.value;
+            if (!email) return;
+
+            const res = await fetch(`${API_URL}/users/friends/requests`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email })
+            });
+
+            if (res.ok) {
+                emailInput.value = '';
+                alert('Friend request sent!');
+            } else {
+                const data = await res.json();
+                alert(data.message || 'Failed to add friend');
+            }
+        }
+
+        async function fetchRequests() {
+            const res = await fetch(`${API_URL}/users/friends/requests`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const requests = await res.json();
+            renderRequestsList(requests);
+        }
+
+        function renderRequestsList(requests) {
+            const section = document.getElementById('requests-section');
+            const list = document.getElementById('requests-list');
+            list.innerHTML = '';
+
+            if (requests.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            requests.forEach(req => {
+                const div = document.createElement('div');
+                div.className = 'user-item';
+                div.style.padding = '8px';
+                div.style.marginBottom = '8px';
+                div.style.background = '#fffbeb';
+                div.style.border = '1px solid #fef3c7';
+
+                const sender = req.sender;
+                const avatar = sender.avatarUrl ? `${API_URL}${sender.avatarUrl}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=${sender.username}`;
+
+                div.innerHTML = `
+                    <img src="${avatar}" class="avatar" style="width: 24px; height: 24px;">
+                    <div style="flex: 1; font-size: 13px;">
+                        <strong>${sender.displayName || sender.username}</strong>
+                    </div>
+                    <div style="display: flex; gap: 4px;">
+                        <button onclick="respondRequest(${req.id}, 'accept')" style="background: #10b981; color: white; border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer;">✓</button>
+                        <button onclick="respondRequest(${req.id}, 'decline')" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer;">✕</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        async function respondRequest(id, action) {
+            const res = await fetch(`${API_URL}/users/friends/requests/${id}/${action}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                fetchRequests();
+                fetchFriends();
+            }
+        }
+
+        async function removeFriend(id) {
+            if (!confirm('Are you sure you want to remove this friend?')) return;
+
+            const res = await fetch(`${API_URL}/users/friends/remove`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ friendId: id })
+            });
+
+            if (res.ok) {
+                if (activeRecipient && activeRecipient.id === id) {
+                    activeRecipient = null;
+                    document.getElementById('chat-title').innerText = 'Global Chat';
+                    document.getElementById('history').innerHTML = '';
+                    fetchHistory();
+                }
+                fetchFriends();
+            }
+        }
+
+        function renderUserList(users) {
+            onlineUsersData = users;
+            const list = document.getElementById('user-list');
+            list.innerHTML = '';
+            users.forEach(u => {
+                if (u.id === me.id) return;
+                const isOnline = onlineUserIds.includes(u.id);
+                const isActive = activeRecipient && activeRecipient.id === u.id;
+
+                const div = document.createElement('div');
+                div.className = `user-item ${isOnline ? 'online' : ''}`;
+                if (isActive) div.style.background = '#e0e7ff';
+                div.onclick = () => selectRecipient(u);
+
+                const avatar = u.avatarUrl ? `${API_URL}${u.avatarUrl}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.username}`;
+                div.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden;">
+                    <img src="${avatar}" class="avatar" style="width: 32px; height: 32px;">
+                    <div style="flex: 1; overflow: hidden;">
+                        <div style="font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 4px;">
+                            ${u.displayName || u.username}
+                            <span style="font-size: 9px; padding: 2px 4px; background: ${isOnline ? '#dcfce7' : '#f1f5f9'}; color: ${isOnline ? '#166534' : '#64748b'}; border-radius: 4px;">${isOnline ? 'Online' : 'Offline'}</span>
+                        </div>
+                        <div style="font-size: 11px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${u.bio || 'No bio yet'}</div>
+                    </div>
+                </div>
+                <button onclick="event.stopPropagation(); removeFriend(${u.id})" 
+                    style="background: transparent; border: none; cursor: pointer; opacity: 0.5; font-size: 12px; padding: 4px;">❌</button>
+            `;
+                list.appendChild(div);
+            });
+
+            // Update Global btn state
+            document.getElementById('global-chat-btn').style.background = activeRecipient ? '#f5f7ff' : '#e0e7ff';
+        }
+
+        function selectRecipient(user) {
+            activeRecipient = user;
+            document.getElementById('chat-title').innerText = user ? (user.displayName || user.username) : 'Global Chat';
+            renderUserList(onlineUsersData);
+
+            // Request history
+            document.getElementById('history').innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 40px;">Loading messages...</div>';
+            socket.emit('get_history', { recipientId: user ? user.id : null });
+        }
+
+        function connectSocket() {
+            socket = io(API_URL, {
+                auth: { token: `Bearer ${token}` }
+            });
+
+            socket.on('friend_request', (data) => {
+                fetchRequests();
+                // Simple notification
+                const toast = document.createElement('div');
+                toast.style = 'position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: white; padding: 12px 24px; border-radius: 12px; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+                toast.innerText = `New friend request from ${data.sender.displayName || data.sender.username}`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 5000);
+            });
+
+            socket.on('friend_removed', (data) => {
+                fetchFriends();
+                if (activeRecipient && activeRecipient.id === data.friendId) {
+                    activeRecipient = null;
+                    document.getElementById('chat-title').innerText = 'Global Chat';
+                    document.getElementById('history').innerHTML = '';
+                    fetchHistory(); // Actually we need to fetch global history logic here or selectRecipient(null)
+                    selectRecipient(null);
+                }
+            });
+
+            socket.on('friend_accepted', (data) => {
+                fetchFriends();
+                // Optional: Toast
+                const toast = document.createElement('div');
+                toast.style = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 12px 24px; border-radius: 12px; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+                toast.innerText = `Friend request accepted!`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 5000);
+            });
+
+            socket.on('history', async (data) => {
+                // Only update if it matches our current view
+                const currentRecipientId = activeRecipient ? activeRecipient.id : null;
+                if (data.recipientId !== currentRecipientId) return;
+
+                const h = document.getElementById('history');
+                h.innerHTML = '';
+                for (const m of data.messages) {
+                    await appendMessage(m);
+                }
+            });
+
+            socket.on('message', async (m) => {
+                const currentRecipientId = activeRecipient ? activeRecipient.id : null;
+
+                let isRelevant = false;
+                if (currentRecipientId === null) {
+                    if (m.recipientId === null) isRelevant = true;
+                } else {
+                    if ((m.senderId === me.id && m.recipientId === currentRecipientId) ||
+                        (m.senderId === currentRecipientId && m.recipientId === me.id)) {
+                        isRelevant = true;
+                    }
+                }
+
+                if (isRelevant) await appendMessage(m);
+                // TODO: Show notification dot if not relevant but sent to us
+            });
+
+            socket.on('online_users', (ids) => {
+                onlineUserIds = ids;
+                fetchAllUsers();
+            });
+
+            socket.on('user_typing', (data) => {
+                const currentRecipientId = activeRecipient ? activeRecipient.id : null;
+                // Only show if it matches our current focus (global or current private chat)
+                if (data.recipientId != currentRecipientId) return;
+
+                if (data.isTyping) {
+                    typingUsers.set(data.username, data.recipientId);
+                } else {
+                    typingUsers.delete(data.username);
+                }
+
+                const el = document.getElementById('typing-indicator');
+                const users = Array.from(typingUsers.keys());
+                if (users.length === 0) {
+                    el.innerText = '';
+                } else if (users.length === 1) {
+                    el.innerText = `${users[0]} is typing...`;
+                } else if (users.length === 2) {
+                    el.innerText = `${users[0]} and ${users[1]} are typing...`;
+                } else {
+                    el.innerText = `${users.length} people are typing...`;
+                }
+            });
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const text = input.value;
+            if (text && socket) {
+                let finalMessage = text;
+                if (activeRecipient && activeRecipient.publicKey) {
+                    const rPubKey = await CryptoManager.importKey(activeRecipient.publicKey, "public");
+                    const sPubKey = await CryptoManager.importKey(me.publicKey, "public");
+                    finalMessage = await CryptoManager.encrypt(text, rPubKey, sPubKey);
+                }
+
+                socket.emit('message', {
+                    message: finalMessage,
+                    recipientId: activeRecipient ? activeRecipient.id : null
+                });
+                input.value = '';
+                stopTyping();
+            }
+        }
+
+        async function appendMessage(m) {
+            const historyArea = document.getElementById('history');
+            const isMe = m.username === me.username;
+
+            let displayContent = m.message;
+            let isE2EE = false;
+            if (m.message && m.message.includes('"data":') && m.message.includes('"keys":')) {
+                isE2EE = true;
+                if (myPrivateKey) {
+                    displayContent = await CryptoManager.decrypt(m.message, myPrivateKey);
+                } else {
+                    displayContent = "[Encrypted]";
+                }
+            }
+
+            const div = document.createElement('div');
+            div.className = `msg-bubble ${isMe ? 'me' : ''}`;
+
+            const avatar = m.avatarUrl ? `${API_URL}${m.avatarUrl}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=${m.username}`;
+            const time = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            div.innerHTML = `
+            <img src="${avatar}" class="avatar" style="width: 32px; height: 32px;">
+            <div class="msg-content">
+                <div class="name">${m.sender} ${isE2EE ? '<span title="End-to-End Encrypted">🔒</span>' : ''}</div>
+                <div class="text">${displayContent}</div>
+                ${m.attachmentUrl ? `<img src="${API_URL}${m.attachmentUrl}" class="img-msg">` : ''}
+                <div class="time">${time}</div>
+            </div>
+        `;
+            historyArea.appendChild(div);
+            historyArea.scrollTop = historyArea.scrollHeight;
+        }
+
+        function handleTypingInput() {
+            const now = Date.now();
+            if (!isTyping || (now - lastTypingEmit > 2000)) {
+                isTyping = true;
+                lastTypingEmit = now;
+                socket.emit('typing', {
+                    isTyping: true,
+                    recipientId: activeRecipient ? activeRecipient.id : null
+                });
+            }
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(stopTyping, 3000);
+        }
+
+        function stopTyping() {
+            isTyping = false;
+            socket.emit('typing', {
+                isTyping: false,
+                recipientId: activeRecipient ? activeRecipient.id : null
+            });
+        }
+
+        function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
+        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
+
+        async function saveProfile() {
+            const displayName = document.getElementById('setting-display-name').value;
+            const bio = document.getElementById('setting-bio').value;
+
+            await fetch(`${API_URL}/users/profile`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ displayName, bio })
+            });
+            await fetchMyProfile();
+            closeSettings();
+        }
+
+        async function uploadAvatar(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            await fetch(`${API_URL}/users/avatar`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            await fetchMyProfile();
+        }
+
+        async function uploadMessageImage(event) {
+            const file = event.target.files[0];
+            if (!file || !socket) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const indicator = document.getElementById('typing-indicator');
+            indicator.innerText = 'Uploading image...';
+
+            try {
+                const res = await fetch(`${API_URL}/users/upload`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    socket.emit('message', {
+                        message: '',
+                        attachmentUrl: data.attachmentUrl,
+                        recipientId: activeRecipient ? activeRecipient.id : null
+                    });
+                }
+                indicator.innerText = '';
+            } catch (e) {
+                console.error('Upload failed', e);
+                indicator.innerText = 'Upload failed';
+                setTimeout(() => indicator.innerText = '', 3000);
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        document.getElementById('message-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+
+</html>

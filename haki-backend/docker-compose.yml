@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: haki_db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: haki_db
+      TZ: Africa/Cairo
+    command: postgres -c timezone=Africa/Cairo
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    container_name: haki_api
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_USER=user
+      - DATABASE_PASSWORD=password
+      - DATABASE_NAME=haki_db
+      - JWT_SECRET=change-me
+      - TZ=${TZ}
+    depends_on:
+      - db
+    restart: always
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  coturn:
+    container_name: haki_coturn
+    image: coturn/coturn
+    restart: always
+    environment:
+      - TURNSERVER_REALM=hakirealm
+      - TURNSERVER_USER=user:password
+    ports:
+      - "3478:3478"
+      - "3478:3478/udp"
+      - "60000-60050:60000-60050/udp"
+    volumes:
+      - coturn_data:/var/lib/turn
+
+volumes:
+  coturn_data:
+  postgres_data:
