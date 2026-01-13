@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
+import { AdminModule } from './admin/admin.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -22,7 +23,7 @@ import { StoriesModule } from './stories/stories.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
+      rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
     TypeOrmModule.forRootAsync({
@@ -44,6 +45,7 @@ import { StoriesModule } from './stories/stories.module';
     AuthModule,
     ChatModule,
     StoriesModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

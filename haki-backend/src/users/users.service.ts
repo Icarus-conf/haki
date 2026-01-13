@@ -280,4 +280,49 @@ export class UsersService {
 
         return !!block;
     }
+
+    // Admin Methods
+    async getAllUsersAdmin(): Promise<User[]> {
+        return this.usersRepository.find({
+            select: ['id', 'username', 'email', 'role', 'isBanned', 'createdAt', 'displayName'],
+            order: { createdAt: 'DESC' }
+        });
+    }
+
+    async getSystemStats() {
+        const usersCount = await this.usersRepository.count();
+        const messagesCount = await this.messageRepository.count();
+        return { usersCount, messagesCount };
+    }
+
+    async setBanStatus(id: number, isBanned: boolean): Promise<void> {
+        await this.usersRepository.update(id, { isBanned });
+    }
+
+    async getAnalytics() {
+        // Last 7 days
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        // Group by day
+        const newUsers = await this.usersRepository
+            .createQueryBuilder('user')
+            .select("TO_CHAR(user.createdAt, 'YYYY-MM-DD')", 'date')
+            .addSelect("COUNT(*)", 'count')
+            .where("user.createdAt >= :date", { date: sevenDaysAgo })
+            .groupBy("TO_CHAR(user.createdAt, 'YYYY-MM-DD')")
+            .orderBy('date', 'ASC')
+            .getRawMany();
+
+        const messages = await this.messageRepository
+            .createQueryBuilder('message')
+            .select("TO_CHAR(message.createdAt, 'YYYY-MM-DD')", 'date')
+            .addSelect("COUNT(*)", 'count')
+            .where("message.createdAt >= :date", { date: sevenDaysAgo })
+            .groupBy("TO_CHAR(message.createdAt, 'YYYY-MM-DD')")
+            .orderBy('date', 'ASC')
+            .getRawMany();
+
+        return { newUsers, messages };
+    }
 }

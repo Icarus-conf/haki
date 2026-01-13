@@ -432,4 +432,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  // ===== BROADCAST SYSTEM =====
+  broadcastSystemMessage(message: string) {
+    this.server.emit('system_message', { message, timestamp: new Date().toISOString() });
+    this.logger.log(`Broadcasted system message: ${message}`);
+  }
 }

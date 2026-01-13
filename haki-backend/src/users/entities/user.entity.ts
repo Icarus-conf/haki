@@ -11,6 +11,12 @@ export class User {
     @Column({ unique: true })
     email: string;
 
+    @Column({ default: 'user' })
+    role: string;
+
+    @Column({ default: false })
+    isBanned: boolean;
+
     @Column({ nullable: true })
     displayName: string;
 
