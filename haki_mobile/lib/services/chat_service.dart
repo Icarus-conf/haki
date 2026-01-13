@@ -15,6 +15,8 @@ class ChatService {
   final _friendRequestController = StreamController<dynamic>.broadcast();
   final _deleteController = StreamController<int>.broadcast();
   final _typingController = StreamController<Map<String, dynamic>>.broadcast();
+  final _messageErrorController = StreamController<dynamic>.broadcast();
+  final _systemMessageController = StreamController<String>.broadcast();
 
   Stream<MessageModel> get messages => _messageController.stream;
   Stream<List<MessageModel>> get history => _historyController.stream;
@@ -23,8 +25,7 @@ class ChatService {
   Stream<int> get deletedMessages => _deleteController.stream;
   Stream<Map<String, dynamic>> get typingEvents => _typingController.stream;
   Stream<dynamic> get messageErrors => _messageErrorController.stream;
-
-  final _messageErrorController = StreamController<dynamic>.broadcast();
+  Stream<String> get systemMessages => _systemMessageController.stream;
 
   void connect(String token) {
     socket = IO.io(
@@ -73,6 +74,10 @@ class ChatService {
 
     socket!.on('message_error', (data) {
       _messageErrorController.add(data);
+    });
+
+    socket!.on('system_message', (data) {
+      _systemMessageController.add(data['message']);
     });
 
     socket!.onDisconnect((_) => log('Disconnected from Chat Socket'));
@@ -133,5 +138,6 @@ class ChatService {
     _deleteController.close();
     _typingController.close();
     _messageErrorController.close();
+    _systemMessageController.close();
   }
 }

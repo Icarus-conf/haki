@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,21 +27,27 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  StreamSubscription? _systemMsgSub;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<ChatProvider>().addListener(_onChatProviderChange);
+        final chat = context.read<ChatProvider>();
+        chat.addListener(_onChatProviderChange);
+
+        _systemMsgSub = chat.systemMessages.listen((message) {
+          if (!mounted) return;
+          ToastUtils.showToast(context, message);
+        });
       }
     });
   }
 
   @override
   void dispose() {
-    // If possible, remove listener.
-    // Since we used an anonymous function or method reference, we need to be careful.
-    // context.read<ChatProvider>().removeListener(_onChatProviderChange);
+    _systemMsgSub?.cancel();
     super.dispose();
   }
 
