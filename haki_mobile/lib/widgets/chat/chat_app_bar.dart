@@ -46,26 +46,30 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                recipient?.displayName ?? recipient?.username ?? '',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  recipient?.displayName ?? recipient?.username ?? '',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              // Show typing indicator or online status
-              if (isRecipientTyping)
-                const Text(
-                  'typing...',
-                  style: TextStyle(fontSize: 12, color: Colors.lightBlueAccent),
-                )
-              else if (recipient != null && onlineUserIds.contains(recipient!.id))
-                const Text('Online', style: TextStyle(fontSize: 12, color: Colors.green)),
-            ],
+                // Show typing indicator or online status
+                if (isRecipientTyping)
+                  const Text(
+                    'typing...',
+                    style: TextStyle(fontSize: 12, color: Colors.lightBlueAccent),
+                    overflow: TextOverflow.ellipsis,
+                  )
+                else if (recipient != null && onlineUserIds.contains(recipient!.id))
+                  const Text('Online', style: TextStyle(fontSize: 12, color: Colors.green)),
+              ],
+            ),
           ),
         ],
       ),

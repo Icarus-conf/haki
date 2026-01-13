@@ -28,6 +28,8 @@ PODS:
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
+  - url_launcher_ios (0.0.1):
+    - Flutter
   - WebRTC-SDK (137.7151.04)
 
 DEPENDENCIES:
@@ -43,6 +45,7 @@ DEPENDENCIES:
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - record_ios (from `.symlinks/plugins/record_ios/ios`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
 SPEC REPOS:
   trunk:
@@ -73,6 +76,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/record_ios/ios"
   sqflite_darwin:
     :path: ".symlinks/plugins/sqflite_darwin/darwin"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
   audioplayers_darwin: 4027b33a8f471d996c13f71cb77f0b1583b5d923
@@ -87,6 +92,7 @@ SPEC CHECKSUMS:
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   record_ios: 840d21cce013c5a3b2168b74a54ebdb4136359e2
   sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
+  url_launcher_ios: bb13df5870e8c4234ca12609d04010a21be43dfa
   WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
 
 PODFILE CHECKSUM: 72a13f669e2f56c34d07706634564cc44acd0882

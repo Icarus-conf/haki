@@ -180,7 +180,11 @@ class MessageManager extends ChangeNotifier {
       }
 
       if (isRelevant) {
-        final index = _messages.indexWhere((msg) => msg.tempId != null && msg.tempId == m.tempId);
+        final index = _messages.indexWhere(
+          (msg) =>
+              (msg.tempId != null && m.tempId != null && msg.tempId == m.tempId) ||
+              (msg.id != null && m.id != null && msg.id == m.id),
+        );
         final text = await _crypto.decrypt(m.message, me.username);
         final newMessage = MessageModel(
           id: m.id,

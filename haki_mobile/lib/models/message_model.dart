@@ -82,6 +82,9 @@ class MessageModel {
     Map<String, dynamic>? mediaKeys,
     String? attachmentType,
     List<ReactionModel>? reactions,
+    int? replyToMessageId,
+    String? replyToSender,
+    String? replyToMessage,
   }) {
     return MessageModel(
       id: id ?? this.id,
@@ -92,7 +95,16 @@ class MessageModel {
       message: message ?? this.message,
       attachmentUrl: attachmentUrl ?? this.attachmentUrl,
       timestamp: timestamp ?? this.timestamp,
+      recipientId: recipientId ?? this.recipientId,
+      tempId: tempId ?? this.tempId,
+      isSending: isSending ?? this.isSending,
+      mediaIv: mediaIv ?? this.mediaIv,
+      mediaKeys: mediaKeys ?? this.mediaKeys,
+      attachmentType: attachmentType ?? this.attachmentType,
       reactions: reactions ?? this.reactions,
+      replyToMessageId: replyToMessageId ?? this.replyToMessageId,
+      replyToSender: replyToSender ?? this.replyToSender,
+      replyToMessage: replyToMessage ?? this.replyToMessage,
     );
   }
 

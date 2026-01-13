@@ -12,6 +12,7 @@ import '../loading_indicator.dart';
 import '../voice_player.dart';
 import 'delete_message_sheet.dart';
 import 'encrypted_image.dart';
+import 'link_preview_card.dart';
 import 'reaction_picker_dialog.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -160,6 +161,10 @@ class MessageBubble extends StatelessWidget {
                           const SizedBox(height: 8),
                           _buildAttachment(context),
                         ],
+                        if (_extractUrl(message.message) != null) ...[
+                          const SizedBox(height: 8),
+                          LinkPreviewCard(url: _extractUrl(message.message)!),
+                        ],
                       ],
                     ),
                   ),
@@ -286,5 +291,13 @@ class MessageBubble extends StatelessWidget {
       grouped.putIfAbsent(emoji, () => []).add(reaction);
     }
     return grouped;
+  }
+
+  String? _extractUrl(String message) {
+    final urlRegExp = RegExp(
+      r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[^\s]+)',
+    );
+    final match = urlRegExp.firstMatch(message);
+    return match?.group(0);
   }
 }

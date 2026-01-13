@@ -288,4 +288,30 @@ class ApiService {
     }
     return [];
   }
+
+  // Link Preview
+  final Map<String, Map<String, dynamic>> _linkPreviewCache = {};
+
+  Future<Map<String, dynamic>?> getLinkPreview(String url) async {
+    if (_linkPreviewCache.containsKey(url)) {
+      return _linkPreviewCache[url];
+    }
+
+    final token = await getToken();
+    try {
+      final res = await http.get(
+        Uri.parse('$baseUrl/messages/link-preview?url=${Uri.encodeComponent(url)}'),
+        headers: _headers(token),
+      );
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        _linkPreviewCache[url] = data;
+        return data;
+      }
+    } catch (e) {
+      dev.log('Error fetching link preview: $e', name: 'ApiService');
+    }
+    return null;
+  }
 }
