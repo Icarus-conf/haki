@@ -1,10 +1,6 @@
 # <div align="center">HAKI Backend</div>
 
 <div align="center">
-  <img src="./banner.png" alt="HAKI Backend Banner" width="100%" />
-</div>
-
-<div align="center">
   <p align="center">
     <strong>The scalable, high-performance core engine powering the HAKI chat ecosystem.</strong>
     <br />
