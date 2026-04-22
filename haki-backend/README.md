@@ -131,7 +131,7 @@ Once the server is running, you can explore the available endpoints.
 ---
 
 <div align="center">
-  <p>Engineered with ❤️ by the <strong>HAKI Team</strong></p>
+  <p>Engineered with ❤️ by <strong>Muhammad Fathy</strong></p>
   <img src="https://img.shields.io/badge/NestJS-E0234E?style=flat-square&logo=nestjs&logoColor=white" alt="NestJS" />
   <img src="https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
