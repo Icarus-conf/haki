@@ -118,7 +118,7 @@ For development environments, use the following pre-configured credentials:
 ---
 
 <div align="center">
-  <p>Built with precision by the <strong>HAKI Team</strong></p>
+  <p>Built with precision by <strong>Muhammad Fathy</strong></p>
   <img src="https://img.shields.io/badge/Made%20with-React-61DAFB?style=flat-square&logo=react" alt="Made with React" />
   <img src="https://img.shields.io/badge/Styled%20with-Tailwind-38B2AC?style=flat-square&logo=tailwind-css" alt="Styled with Tailwind" />
 </div>
