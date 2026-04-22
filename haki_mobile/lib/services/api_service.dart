@@ -8,7 +8,7 @@ import '../models/message_model.dart';
 import '../models/user_model.dart';
 
 class ApiService {
-  static String baseUrl = 'http://192.168.1.64:3000';
+  static String baseUrl = 'http://192.168.1.24:3000';
   final _storage = const FlutterSecureStorage();
 
   Future<String?> getToken() => _storage.read(key: 'token');
@@ -33,11 +33,19 @@ class ApiService {
     return data;
   }
 
-  Future<Map<String, dynamic>> register(String username, String email, String password) async {
+  Future<Map<String, dynamic>> register(
+    String username,
+    String email,
+    String password,
+  ) async {
     final res = await http.post(
       Uri.parse('$baseUrl/auth/register'),
       headers: _headers(null),
-      body: jsonEncode({'username': username, 'email': email, 'password': password}),
+      body: jsonEncode({
+        'username': username,
+        'email': email,
+        'password': password,
+      }),
     );
     return jsonDecode(res.body);
   }
@@ -45,7 +53,10 @@ class ApiService {
   // Users
   Future<UserModel?> getMe() async {
     final token = await getToken();
-    final res = await http.get(Uri.parse('$baseUrl/users/me'), headers: _headers(token));
+    final res = await http.get(
+      Uri.parse('$baseUrl/users/me'),
+      headers: _headers(token),
+    );
     if (res.statusCode == 200) {
       return UserModel.fromJson(jsonDecode(res.body));
     }
@@ -54,7 +65,10 @@ class ApiService {
 
   Future<List<UserModel>> getFriends() async {
     final token = await getToken();
-    final res = await http.get(Uri.parse('$baseUrl/users/friends'), headers: _headers(token));
+    final res = await http.get(
+      Uri.parse('$baseUrl/users/friends'),
+      headers: _headers(token),
+    );
     if (res.statusCode == 200) {
       final List data = jsonDecode(res.body);
       return data.map((u) => UserModel.fromJson(u)).toList();
@@ -76,7 +90,10 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'email': email}),
       );
 
@@ -108,13 +125,20 @@ class ApiService {
         Uri.parse('$baseUrl/users/friends/requests'),
         headers: _headers(token),
       );
-      dev.log('Fetched ${jsonDecode(res.body).length} friend requests', name: 'ApiService');
+      dev.log(
+        'Fetched ${jsonDecode(res.body).length} friend requests',
+        name: 'ApiService',
+      );
       if (res.statusCode == 200) {
         return jsonDecode(res.body);
       }
       return [];
     } catch (e) {
-      dev.log('Error fetching friend requests: $e', name: 'ApiService', error: e);
+      dev.log(
+        'Error fetching friend requests: $e',
+        name: 'ApiService',
+        error: e,
+      );
       rethrow;
     }
   }
@@ -127,10 +151,17 @@ class ApiService {
         Uri.parse('$baseUrl/users/friends/requests/$requestId/accept'),
         headers: _headers(token),
       );
-      dev.log('Accept request response: ${res.statusCode} - ${res.body}', name: 'ApiService');
+      dev.log(
+        'Accept request response: ${res.statusCode} - ${res.body}',
+        name: 'ApiService',
+      );
       return res.statusCode == 200 || res.statusCode == 201;
     } catch (e) {
-      dev.log('Error accepting friend request: $e', name: 'ApiService', error: e);
+      dev.log(
+        'Error accepting friend request: $e',
+        name: 'ApiService',
+        error: e,
+      );
       rethrow;
     }
   }
@@ -143,10 +174,17 @@ class ApiService {
         Uri.parse('$baseUrl/users/friends/requests/$requestId/decline'),
         headers: _headers(token),
       );
-      dev.log('Decline request response: ${res.statusCode} - ${res.body}', name: 'ApiService');
+      dev.log(
+        'Decline request response: ${res.statusCode} - ${res.body}',
+        name: 'ApiService',
+      );
       return res.statusCode == 200 || res.statusCode == 201;
     } catch (e) {
-      dev.log('Error declining friend request: $e', name: 'ApiService', error: e);
+      dev.log(
+        'Error declining friend request: $e',
+        name: 'ApiService',
+        error: e,
+      );
       rethrow;
     }
   }
@@ -184,7 +222,10 @@ class ApiService {
 
   Future<List<UserModel>> getBlockedUsers() async {
     final token = await getToken();
-    final res = await http.get(Uri.parse('$baseUrl/users/blocked'), headers: _headers(token));
+    final res = await http.get(
+      Uri.parse('$baseUrl/users/blocked'),
+      headers: _headers(token),
+    );
     if (res.statusCode == 200) {
       final List data = jsonDecode(res.body);
       return data.map((u) => UserModel.fromJson(u)).toList();
@@ -192,7 +233,11 @@ class ApiService {
     return [];
   }
 
-  Future<UserModel?> updateProfile({String? displayName, String? bio, String? publicKey}) async {
+  Future<UserModel?> updateProfile({
+    String? displayName,
+    String? bio,
+    String? publicKey,
+  }) async {
     final token = await getToken();
     final res = await http.patch(
       Uri.parse('$baseUrl/users/profile'),
@@ -224,7 +269,10 @@ class ApiService {
 
   Future<String?> uploadAvatar(String filePath) async {
     final token = await getToken();
-    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/users/avatar'));
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/users/avatar'),
+    );
     request.headers.addAll(_headers(token));
     request.files.add(await http.MultipartFile.fromPath('file', filePath));
 
@@ -238,7 +286,10 @@ class ApiService {
 
   Future<String?> uploadAttachment(String filePath) async {
     final token = await getToken();
-    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/users/upload'));
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/users/upload'),
+    );
     request.headers.addAll(_headers(token));
     request.files.add(await http.MultipartFile.fromPath('file', filePath));
 
@@ -253,14 +304,20 @@ class ApiService {
   // Stories
   Future<List<dynamic>> getActiveStories() async {
     final token = await getToken();
-    final res = await http.get(Uri.parse('$baseUrl/stories/active'), headers: _headers(token));
+    final res = await http.get(
+      Uri.parse('$baseUrl/stories/active'),
+      headers: _headers(token),
+    );
     if (res.statusCode == 200) {
       return jsonDecode(res.body);
     }
     return [];
   }
 
-  Future<Map<String, dynamic>?> uploadStory(String filePath, {String type = 'image'}) async {
+  Future<Map<String, dynamic>?> uploadStory(
+    String filePath, {
+    String type = 'image',
+  }) async {
     final token = await getToken();
     var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/stories'));
     request.headers.addAll(_headers(token));
@@ -300,7 +357,9 @@ class ApiService {
     final token = await getToken();
     try {
       final res = await http.get(
-        Uri.parse('$baseUrl/messages/link-preview?url=${Uri.encodeComponent(url)}'),
+        Uri.parse(
+          '$baseUrl/messages/link-preview?url=${Uri.encodeComponent(url)}',
+        ),
         headers: _headers(token),
       );
 
