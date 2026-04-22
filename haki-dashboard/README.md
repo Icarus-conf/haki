@@ -1,10 +1,6 @@
 # <div align="center">HAKI Admin Dashboard</div>
 
 <div align="center">
-  <img src="./public/banner.png" alt="HAKI Dashboard Banner" width="100%" />
-</div>
-
-<div align="center">
   <p align="center">
     <strong>A high-performance, premium administrative interface for the HAKI ecosystem.</strong>
     <br />
