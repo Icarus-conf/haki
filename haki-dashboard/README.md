@@ -1,71 +1,124 @@
-# HAKI Admin Dashboard
+# <div align="center">HAKI Admin Dashboard</div>
 
-A comprehensive administrative interface for the HAKI chat application. Built with Next.js, this dashboard provides real-time insights, user management, and system monitoring capabilities.
+<div align="center">
+  <img src="./public/banner.png" alt="HAKI Dashboard Banner" width="100%" />
+</div>
+
+<div align="center">
+  <p align="center">
+    <strong>A high-performance, premium administrative interface for the HAKI ecosystem.</strong>
+    <br />
+    Built with Next.js 15, React 19, and Tailwind CSS 4.
+  </p>
+
+  <p align="center">
+    <a href="#-features">Features</a> •
+    <a href="#-tech-stack">Tech Stack</a> •
+    <a href="#-getting-started">Getting Started</a> •
+    <a href="#-project-structure">Structure</a>
+  </p>
+</div>
+
+---
+
+## 🌟 Overview
+
+The **HAKI Admin Dashboard** is a state-of-the-art management console designed to provide real-time insights and control over the HAKI chat platform. It offers a seamless experience for administrators to monitor user activity, manage orders, generate coupons, and oversee system health with elegant visualizations and a responsive interface.
 
 ## 🚀 Features
 
-- **Analytics Dashboard**: Visualize user growth and message volume with interactive charts.
-- **User Management**: Monitor user activity, manage roles, and handle account status (ban/unban).
-- **System Logs**: Real-time access to backend system logs for monitoring and debugging.
-- **Storage Management**: Track storage usage and perform cleanup operations.
-- **Broadcast System**: Send system-wide announcements to all users.
+### 📊 Advanced Analytics
+- **Real-time Growth Tracking**: Monitor user acquisition and message volume in real-time.
+- **Interactive Visualizations**: High-fidelity charts powered by Recharts for data-driven decision making.
+- **Business Insights**: Specific metrics tailored for individual business units within the HAKI ecosystem.
 
-## 🛠️ Technology Stack
+### 🎫 Coupon & Promotion Management
+- **Bulk Generation**: Sophisticated logic for creating unique, business-prefixed coupon codes.
+- **Flexible Distribution**: Manage coupon lifecycle from creation to redemption tracking.
+- **Custom Prefixes**: Automatically generate codes like `SHOP-ABC-123` for brand consistency.
 
-- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Charts**: [Recharts](https://recharts.org/)
-- **State Management**: React Hooks
-- **Icons**: Lucide React
+### 📦 Order & Logistics Control
+- **Unified Order View**: Track orders across all businesses in a single, powerful interface.
+- **Status Management**: Real-time updates for order processing, from placement to completion.
+- **Detailed Drill-downs**: Deep-dive into specific order metadata and history.
+
+### 🛡️ Super Admin Capabilities
+- **User Governance**: Comprehensive tools for role management and account moderation (ban/unban).
+- **System Monitoring**: Access to backend logs and storage usage statistics.
+- **Global Broadcasts**: Send instant announcements to all connected users across the platform.
+
+## 🛠️ Tech Stack
+
+| Category | Technology |
+| :--- | :--- |
+| **Framework** | [Next.js 15+](https://nextjs.org/) (App Router) |
+| **Core** | [React 19](https://react.dev/) |
+| **Styling** | [Tailwind CSS 4](https://tailwindcss.com/) |
+| **Data Viz** | [Recharts](https://recharts.org/) |
+| **Icons** | [Lucide React](https://lucide.dev/) |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) |
 
 ## 📦 Getting Started
 
 ### Prerequisites
 
-This dashboard requires the [HAKI Backend](https://github.com/your-repo/haki-backend) to be running. By default, it expects the backend at `http://localhost:3000`.
+Ensure you have the following installed:
+- **Node.js**: v20 or higher
+- **npm**: v10 or higher
+- **Backend**: A running instance of the [HAKI Backend](https://github.com/your-repo/haki-backend)
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the Repository**
    ```bash
    git clone https://github.com/your-repo/haki-dashboard.git
    cd haki-dashboard
    ```
 
-2. Install dependencies:
+2. **Install Dependencies**
    ```bash
    npm install
    ```
 
-3. Configure environment variables (if necessary):
-   Create a `.env.local` file if you need to override the default API URL:
+3. **Environment Configuration**
+   Create a `.env.local` file in the root directory:
    ```env
    NEXT_PUBLIC_API_URL=http://localhost:3000
    ```
 
-4. Run the development server:
+4. **Run Development Server**
    ```bash
    npm run dev
    ```
 
-Open [http://localhost:3001](http://localhost:3001) (or the port assigned by Next.js) to see the dashboard.
-
-## 🔐 Default Credentials
-
-For development environments, you can use the default administrator account:
-
-- **Username**: `admin`
-- **Password**: `admin123`
-
-*Note: Ensure you change these credentials in production environments.*
+Visit [http://localhost:3001](http://localhost:3001) to explore the dashboard.
 
 ## 📁 Project Structure
 
-- `src/app`: Next.js App Router pages and layouts.
-- `src/components`: Reusable UI components.
-- `src/lib`: API client and utility functions.
-- `public`: Static assets.
+```text
+haki-dashboard/
+├── src/
+│   ├── app/            # Next.js App Router (Pages, Layouts, CSS)
+│   ├── components/     # High-fidelity UI Components
+│   ├── lib/            # Core logic, API clients & Utilities
+│   └── types/          # Global TypeScript definitions
+├── public/             # Static assets (Images, Icons)
+└── next.config.ts      # Optimized Next.js configuration
+```
+
+## 🔐 Security & Access
+
+For development environments, use the following pre-configured credentials:
+- **Username**: `admin`
+- **Password**: `admin123`
+
+> [!WARNING]
+> Always change default credentials and rotate API keys before deploying to production environments.
 
 ---
 
-Built with ❤️ by the HAKI Team.
+<div align="center">
+  <p>Built with precision by the <strong>HAKI Team</strong></p>
+  <img src="https://img.shields.io/badge/Made%20with-React-61DAFB?style=flat-square&logo=react" alt="Made with React" />
+  <img src="https://img.shields.io/badge/Styled%20with-Tailwind-38B2AC?style=flat-square&logo=tailwind-css" alt="Styled with Tailwind" />
+</div>
