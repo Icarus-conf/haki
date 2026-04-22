@@ -1,10 +1,6 @@
 # <div align="center">HAKI Mobile</div>
 
 <div align="center">
-  <img src="./banner.png" alt="HAKI Mobile Banner" width="100%" />
-</div>
-
-<div align="center">
   <p align="center">
     <strong>Connect Securely. Communicate Instantly.</strong>
     <br />
