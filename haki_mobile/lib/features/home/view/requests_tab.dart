@@ -6,6 +6,7 @@ import '../../../core/utils/format.dart';
 import '../../../core/widgets/glass.dart';
 import '../../friends/view_model/friends_cubit.dart';
 import 'add_friend_sheet.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 class RequestsTab extends StatelessWidget {
   const RequestsTab({super.key});
@@ -60,7 +61,7 @@ class RequestsTab extends StatelessWidget {
                           tooltip: 'Decline ${r.sender.name}',
                           onPressed: () => cubit.decline(r.id),
                           style: IconButton.styleFrom(backgroundColor: HakiColors.surfaceHigh),
-                          icon: const Icon(Icons.close_rounded),
+                          icon: const Icon(HakiIcons.x),
                         ),
                         const SizedBox(width: 6),
                         IconButton(
@@ -70,7 +71,7 @@ class RequestsTab extends StatelessWidget {
                             backgroundColor: HakiColors.lime,
                             foregroundColor: HakiColors.onLime,
                           ),
-                          icon: const Icon(Icons.check_rounded),
+                          icon: const Icon(HakiIcons.check),
                         ),
                       ],
                     ),

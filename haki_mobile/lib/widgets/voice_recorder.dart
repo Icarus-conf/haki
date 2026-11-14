@@ -9,6 +9,7 @@ import 'package:record/record.dart';
 
 import '../core/theme/haki_theme.dart';
 import '../core/widgets/glass.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 class VoiceRecorder extends StatefulWidget {
   /// The recording and how long it is (shown to the other person before they play it).
@@ -279,7 +280,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.arrow_back_rounded,
+                          HakiIcons.arrowLeft,
                           size: 14,
                           color: _isCancelled ? Colors.red : HakiColors.textMuted,
                         ),
@@ -310,7 +311,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
                     ),
                   ],
                 ),
-                child: const Icon(Icons.mic_rounded, color: HakiColors.onLime, size: 20),
+                child: const Icon(HakiIcons.microphone, color: HakiColors.onLime, size: 20),
               ),
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import 'glass.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// Full-screen camera that pops with the first QR value it reads.
 class QrScannerView extends StatefulWidget {
@@ -48,7 +49,7 @@ class _QrScannerViewState extends State<QrScannerView> {
               child: Row(
                 children: [
                   GlassIconButton(
-                    icon: Icons.close_rounded,
+                    icon: HakiIcons.x,
                     tooltip: 'Close scanner',
                     onPressed: () => Navigator.pop(context),
                   ),

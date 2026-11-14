@@ -5,6 +5,7 @@ import '../../../core/theme/haki_theme.dart';
 import '../../../core/widgets/glass.dart';
 import '../../../models/message_envelope.dart';
 import '../../../models/message_model.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// Bundled stickers: sent inside the encrypted body, so no sticker service ever sees them.
 const hakiStickers = [
@@ -149,7 +150,7 @@ class _PollComposerSheetState extends State<PollComposerSheet> {
             const SizedBox(height: 8),
             LimeButton(
               label: 'Send poll',
-              icon: Icons.poll_rounded,
+              icon: HakiIcons.chartBar,
               onPressed: _valid
                   ? () => Navigator.pop(context, PollData(question: _question.text.trim(), options: _filled, multi: _multi))
                   : null,
@@ -183,7 +184,7 @@ class PollCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.poll_rounded, size: 16, color: HakiColors.lime),
+              const Icon(HakiIcons.chartBar, size: 16, color: HakiColors.lime),
               const SizedBox(width: 6),
               Text(poll.multi ? 'Poll · pick any' : 'Poll · pick one',
                   style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.7))),
@@ -227,8 +228,8 @@ class PollCard extends StatelessWidget {
                             children: [
                               Icon(
                                 mine.contains(i)
-                                    ? Icons.check_circle_rounded
-                                    : (poll.multi ? Icons.check_box_outline_blank_rounded : Icons.radio_button_off),
+                                    ? HakiIcons.checkCircleFill
+                                    : (poll.multi ? HakiIcons.square : HakiIcons.circle),
                                 size: 18,
                                 color: mine.contains(i) ? HakiColors.lime : Colors.white.withValues(alpha: 0.6),
                               ),

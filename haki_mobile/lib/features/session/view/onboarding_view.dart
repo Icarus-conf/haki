@@ -5,6 +5,7 @@ import '../../../core/theme/haki_theme.dart';
 import '../../../core/widgets/glass.dart';
 import '../view_model/session_cubit.dart';
 import 'recovery_phrase_panel.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// Shown once after sign-up: the user must acknowledge their 12 words.
 class OnboardingView extends StatefulWidget {
@@ -45,7 +46,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.warning_amber_rounded, color: HakiColors.dangerText),
+                        Icon(HakiIcons.warning, color: HakiColors.dangerText),
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -71,7 +72,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                   const SizedBox(height: 12),
                   LimeButton(
                     label: 'Enter Haki',
-                    icon: Icons.arrow_forward_rounded,
+                    icon: HakiIcons.arrowRight,
                     onPressed: _acknowledged ? () => context.read<SessionCubit>().completeOnboarding() : null,
                   ),
                 ],

@@ -13,6 +13,7 @@ import '../core/theme/haki_theme.dart';
 import '../core/widgets/glass.dart';
 import '../services/api_service.dart';
 import '../services/transcriber.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 class VoicePlayer extends StatefulWidget {
   final String url;
@@ -225,7 +226,7 @@ class _VoicePlayerState extends State<VoicePlayer> with SingleTickerProviderStat
                       ),
                     )
                   : Icon(
-                      isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      isPlaying ? HakiIcons.pauseFill : HakiIcons.playFill,
                       color: HakiColors.onLime,
                       size: 24,
                     ),
@@ -279,7 +280,7 @@ class _VoicePlayerState extends State<VoicePlayer> with SingleTickerProviderStat
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.mic_rounded, size: 10, color: Colors.white.withValues(alpha: 0.8)),
+                          Icon(HakiIcons.microphone, size: 10, color: Colors.white.withValues(alpha: 0.8)),
                           const SizedBox(width: 2),
                           Text(
                             _formatDuration(_duration),
@@ -319,7 +320,7 @@ class _VoicePlayerState extends State<VoicePlayer> with SingleTickerProviderStat
               onPressed: _transcribing ? null : _transcribe,
               icon: _transcribing
                   ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.subject_rounded, size: 16),
+                  : const Icon(HakiIcons.textAlignLeft, size: 16),
               label: Text(_transcribing ? 'Transcribing on this phone…' : 'Show text'),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white.withValues(alpha: 0.85),

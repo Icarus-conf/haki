@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/haki_theme.dart';
 import '../../../core/widgets/glass.dart';
 import '../../friends/view_model/friends_cubit.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 class BlockedUsersView extends StatelessWidget {
   const BlockedUsersView({super.key});
@@ -18,7 +19,7 @@ class BlockedUsersView extends StatelessWidget {
           children: [
             Align(
               alignment: Alignment.centerLeft,
-              child: GlassIconButton(icon: Icons.arrow_back_rounded, tooltip: 'Back', onPressed: () => Navigator.pop(context)),
+              child: GlassIconButton(icon: HakiIcons.arrowLeft, tooltip: 'Back', onPressed: () => Navigator.pop(context)),
             ),
             const SizedBox(height: 24),
             Text('Blocked', style: HakiText.display(42)),

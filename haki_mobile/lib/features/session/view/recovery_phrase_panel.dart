@@ -7,6 +7,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../core/theme/haki_theme.dart';
 import '../../../core/widgets/glass.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// The 12 words (hidden until revealed) plus a QR backup that can be saved to Photos.
 /// Shared by sign-up onboarding and Profile › Recovery words.
@@ -61,7 +62,7 @@ class _RecoveryPhrasePanelState extends State<RecoveryPhrasePanel> {
                   ),
                   TextButton.icon(
                     onPressed: () => setState(() => _revealed = !_revealed),
-                    icon: Icon(_revealed ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 18),
+                    icon: Icon(_revealed ? HakiIcons.eyeSlash : HakiIcons.eye, size: 18),
                     label: Text(_revealed ? 'Hide' : 'Reveal'),
                     style: TextButton.styleFrom(foregroundColor: HakiColors.lime),
                   ),
@@ -119,7 +120,7 @@ class _RecoveryPhrasePanelState extends State<RecoveryPhrasePanel> {
           ),
           TextButton.icon(
             onPressed: _saveQr,
-            icon: const Icon(Icons.download_rounded),
+            icon: const Icon(HakiIcons.downloadSimple),
             label: const Text('Save QR to photos'),
             style: TextButton.styleFrom(foregroundColor: HakiColors.lime),
           ),

@@ -18,6 +18,7 @@ import '../../../widgets/chat/link_preview_card.dart';
 import '../../../widgets/voice_player.dart';
 import 'chat_extras.dart';
 import 'compose_extras.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 class MessageBubble extends StatelessWidget {
   const MessageBubble({
@@ -87,7 +88,7 @@ class MessageBubble extends StatelessWidget {
         if (message.expiresAt != null)
           Padding(
             padding: const EdgeInsets.only(right: 4),
-            child: Icon(Icons.timer_outlined, size: 12, color: Colors.white.withValues(alpha: 0.65), semanticLabel: 'Disappears'),
+            child: Icon(HakiIcons.timer, size: 12, color: Colors.white.withValues(alpha: 0.65), semanticLabel: 'Disappears'),
           ),
         if (message.editedAt != null)
           Padding(
@@ -99,8 +100,8 @@ class MessageBubble extends StatelessWidget {
           const SizedBox(width: 4),
           Icon(
             message.isSending
-                ? Icons.schedule_rounded
-                : (message.isRead ? Icons.done_all_rounded : Icons.done_rounded),
+                ? HakiIcons.clock
+                : (message.isRead ? HakiIcons.checks : HakiIcons.check),
             size: 14,
             color: message.isRead ? HakiColors.lime : Colors.white.withValues(alpha: 0.72),
             semanticLabel: message.isSending ? 'Sending' : (message.isRead ? 'Read' : 'Sent'),
@@ -174,7 +175,7 @@ class MessageBubble extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.shortcut_rounded, size: 14, color: Colors.white.withValues(alpha: 0.65)),
+                    Icon(HakiIcons.arrowBendUpRight, size: 14, color: Colors.white.withValues(alpha: 0.65)),
                     const SizedBox(width: 4),
                     Text(
                       'Forwarded',
@@ -232,7 +233,7 @@ class MessageBubble extends StatelessWidget {
                     ? Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.lock_outline_rounded, size: 15, color: Colors.white.withValues(alpha: 0.6)),
+                          Icon(HakiIcons.lock, size: 15, color: Colors.white.withValues(alpha: 0.6)),
                           const SizedBox(width: 6),
                           Flexible(
                             child: Text(
@@ -426,7 +427,7 @@ class _StoryQuote extends StatelessWidget {
               errorWidget: (_, _, _) => const SizedBox(
                 width: 40,
                 height: 56,
-                child: Icon(Icons.auto_stories_rounded, size: 18, color: HakiColors.textMuted),
+                child: Icon(HakiIcons.bookOpenText, size: 18, color: HakiColors.textMuted),
               ),
             ),
           ),
@@ -451,7 +452,7 @@ class _Broken extends StatelessWidget {
   Widget build(BuildContext context) => const SizedBox(
     height: 160,
     width: 200,
-    child: Center(child: Icon(Icons.broken_image_outlined, color: HakiColors.textMuted)),
+    child: Center(child: Icon(HakiIcons.imageBroken, color: HakiColors.textMuted)),
   );
 }
 

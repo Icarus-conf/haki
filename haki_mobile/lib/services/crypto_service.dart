@@ -422,6 +422,84 @@ class CryptoService {
     };
   }
 
+  // ===== Feed: one AES key per post, wrapped once per reader; text, media and comments reuse it =====
+
+  /// A fresh post key and its wrapped copies, keyed like [publicKeys] (user ids).
+  Future<(List<int>, Map<String, String>)> newPostKey(
+    Map<String, String> publicKeys,
+  ) async {
+    final key = await (await _aesAlgorithm.newSecretKey()).extractBytes();
+    return (key, await _wrapKey(key, publicKeys));
+  }
+
+  /// My copy of a post key, or null if it isn't for this account.
+  Future<List<int>?> unwrapPostKey(String wrapped, String username) async {
+    final priv = await _getPrivateKey(username);
+    if (priv == null) return null;
+    try {
+      return base64Decode(
+        await RSA.decryptOAEP(
+          wrapped,
+          "",
+          Hash.SHA256,
+          _ensurePem(priv, isPublic: false),
+        ),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// AES-GCM with [key]; returns the sealed bytes (cipher + tag) and the base64 nonce.
+  Future<(Uint8List, String)> sealBytes(List<int> key, List<int> clear) async {
+    final nonce = _aesAlgorithm.newNonce();
+    final box = await _aesAlgorithm.encrypt(
+      clear,
+      secretKey: SecretKey(key),
+      nonce: nonce,
+    );
+    return (
+      Uint8List.fromList([...box.cipherText, ...box.mac.bytes]),
+      base64Encode(nonce),
+    );
+  }
+
+  Future<Uint8List?> openBytes(
+    List<int> key,
+    Uint8List sealed,
+    String iv,
+  ) async {
+    if (sealed.length < 16) return null;
+    try {
+      final box = SecretBox(
+        sealed.sublist(0, sealed.length - 16),
+        nonce: base64Decode(iv),
+        mac: Mac(sealed.sublist(sealed.length - 16)),
+      );
+      return Uint8List.fromList(
+        await _aesAlgorithm.decrypt(box, secretKey: SecretKey(key)),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Text as the server stores it: `{"data", "iv"}`.
+  Future<String> sealText(List<int> key, String text) async {
+    final (data, iv) = await sealBytes(key, utf8.encode(text));
+    return jsonEncode({'data': base64Encode(data), 'iv': iv});
+  }
+
+  Future<String?> openText(List<int> key, String sealed) async {
+    try {
+      final m = jsonDecode(sealed) as Map<String, dynamic>;
+      final clear = await openBytes(key, base64Decode(m['data']), m['iv']);
+      return clear == null ? null : utf8.decode(clear);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Binary Hybrid Decryption for Media.
   Future<Uint8List?> decryptMedia({
     required Uint8List encryptedBytes,

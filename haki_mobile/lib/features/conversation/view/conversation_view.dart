@@ -39,6 +39,7 @@ import 'forward_sheet.dart';
 import 'message_bubble.dart';
 import 'safety_number_sheet.dart';
 import 'shared_media_view.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// A private chat with [recipient], a [group] chat, or the public Haki Lounge when both are null.
 class ConversationView extends StatelessWidget {
@@ -171,15 +172,15 @@ class _ConversationScreenState extends State<_ConversationScreen> {
               runSpacing: 12,
               children: [
                 for (final (id, icon, label) in [
-                  ('photo', Icons.photo_rounded, 'Photo'),
-                  ('gif', Icons.gif_box_rounded, 'GIF'),
-                  ('sticker', Icons.emoji_emotions_rounded, 'Sticker'),
+                  ('photo', HakiIcons.image, 'Photo'),
+                  ('gif', HakiIcons.gif, 'GIF'),
+                  ('sticker', HakiIcons.smiley, 'Sticker'),
                   // ponytail: videos and files are path-based; the web gets them once the media layer reads bytes
-                  if (!kIsWeb) ('video', Icons.videocam_rounded, 'Video'),
-                  if (!kIsWeb) ('file', Icons.attach_file_rounded, 'File'),
-                  ('poll', Icons.poll_rounded, 'Poll'),
-                  ('later', Icons.schedule_send_rounded, 'Send later'),
-                  if (widget.recipient != null) ('once', Icons.looks_one_rounded, 'View once'),
+                  if (!kIsWeb) ('video', HakiIcons.videoCamera, 'Video'),
+                  if (!kIsWeb) ('file', HakiIcons.paperclip, 'File'),
+                  ('poll', HakiIcons.chartBar, 'Poll'),
+                  ('later', HakiIcons.clockCountdown, 'Send later'),
+                  if (widget.recipient != null) ('once', HakiIcons.numberCircleOne, 'View once'),
                 ])
                   SizedBox(
                     width: 96,
@@ -319,7 +320,7 @@ class _ConversationScreenState extends State<_ConversationScreen> {
             ),
             for (final m in scheduled)
               ListTile(
-                leading: const Icon(Icons.schedule_send_rounded, color: HakiColors.lime),
+                leading: const Icon(HakiIcons.clockCountdown, color: HakiColors.lime),
                 title: Text(
                   m.poll != null
                       ? 'Poll: ${m.poll!.question}'
@@ -391,7 +392,7 @@ class _ConversationScreenState extends State<_ConversationScreen> {
       child: Row(
         children: [
           Icon(
-            names.isEmpty ? Icons.done_rounded : Icons.done_all_rounded,
+            names.isEmpty ? HakiIcons.check : HakiIcons.checks,
             size: 18,
             color: names.isEmpty ? HakiColors.textMuted : HakiColors.lime,
           ),
@@ -430,7 +431,7 @@ class _ConversationScreenState extends State<_ConversationScreen> {
                 const SizedBox(height: 14),
                 const Row(
                   children: [
-                    Icon(Icons.lock_rounded, size: 14, color: HakiColors.lime),
+                    Icon(HakiIcons.lockFill, size: 14, color: HakiColors.lime),
                     SizedBox(width: 6),
                     Text('Translated on this phone', style: TextStyle(color: HakiColors.textMuted, fontSize: 12)),
                   ],
@@ -479,7 +480,7 @@ class _ConversationScreenState extends State<_ConversationScreen> {
                     ],
                   ),
                 ),
-              _action(sheet, Icons.reply_rounded, 'Reply', () {
+              _action(sheet, HakiIcons.arrowBendUpLeft, 'Reply', () {
                 setState(() {
                   _replyTo = m;
                   _editing = null;
@@ -487,31 +488,31 @@ class _ConversationScreenState extends State<_ConversationScreen> {
                 _focus.requestFocus();
               }),
               if (isMe && m.id != null && m.message.trim().isNotEmpty && !m.isVoice && m.poll == null && readable)
-                _action(sheet, Icons.edit_rounded, 'Edit', () => _startEdit(m)),
+                _action(sheet, HakiIcons.pencilSimple, 'Edit', () => _startEdit(m)),
               if (m.message.trim().isNotEmpty && readable && !m.viewOnce)
-                _action(sheet, Icons.copy_rounded, 'Copy', () {
+                _action(sheet, HakiIcons.copy, 'Copy', () {
                   Clipboard.setData(ClipboardData(text: m.message));
                   showHakiToast(context, 'Copied');
                 }),
               if (m.id != null && readable && !m.viewOnce)
-                _action(sheet, Icons.shortcut_rounded, 'Forward', () => _forward(m)),
+                _action(sheet, HakiIcons.arrowBendUpRight, 'Forward', () => _forward(m)),
               if (!isMe && Translator.supported && readable && m.message.trim().isNotEmpty && m.poll == null)
-                _action(sheet, Icons.translate_rounded, 'Translate', () => _translate(m)),
+                _action(sheet, HakiIcons.translate, 'Translate', () => _translate(m)),
               if (canPin)
                 _action(
                   sheet,
-                  m.pinned ? Icons.push_pin_outlined : Icons.push_pin_rounded,
+                  m.pinned ? HakiIcons.pushPin : HakiIcons.pushPinFill,
                   m.pinned ? 'Unpin' : 'Pin for everyone here',
                   () => _cubit.setPinned(m, !m.pinned),
                 ),
               if (m.id != null)
-                _action(sheet, Icons.visibility_off_outlined, 'Delete for me', () {
+                _action(sheet, HakiIcons.eyeSlash, 'Delete for me', () {
                   _cubit.deleteForMe(m);
                   showHakiToast(context, 'Deleted for you');
                 }),
-              if (!isMe && m.id != null) _action(sheet, Icons.flag_outlined, 'Report', () => _report(m)),
+              if (!isMe && m.id != null) _action(sheet, HakiIcons.flag, 'Report', () => _report(m)),
               if (isMe && m.id != null)
-                _action(sheet, Icons.delete_outline_rounded, 'Delete for everyone', () {
+                _action(sheet, HakiIcons.trash, 'Delete for everyone', () {
                   _cubit.deleteWithUndo(m);
                   showHakiToast(context, 'Message deleted', onUndo: () => _cubit.undoDelete(m));
                 }, danger: true),
@@ -686,7 +687,7 @@ class _ConversationScreenState extends State<_ConversationScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.timer_outlined, size: 16, color: HakiColors.lime),
+                                  const Icon(HakiIcons.timer, size: 16, color: HakiColors.lime),
                                   const SizedBox(width: 6),
                                   Text(
                                     'Messages disappear after ${ConversationCubit.disappearLabel(timer)}',
@@ -699,7 +700,7 @@ class _ConversationScreenState extends State<_ConversationScreen> {
                         ),
                       if (keyChanged)
                         _Banner(
-                          icon: Icons.key_rounded,
+                          icon: HakiIcons.key,
                           text: '${recipient.name}’s safety number changed',
                           action: 'Check',
                           onTap: () {
@@ -709,7 +710,7 @@ class _ConversationScreenState extends State<_ConversationScreen> {
                         ),
                       if (showCall)
                         _Banner(
-                          icon: Icons.call_rounded,
+                          icon: HakiIcons.phoneFill,
                           text: '${callPeople.length} in a call',
                           action: 'Join',
                           onTap: () => GroupCallView.open(context, group!, me),
@@ -741,7 +742,7 @@ class _ConversationScreenState extends State<_ConversationScreen> {
                       ),
                     if (scheduled.isNotEmpty && _editing == null)
                       _Pill(
-                        icon: Icons.schedule_send_rounded,
+                        icon: HakiIcons.clockCountdown,
                         label: scheduled.length == 1
                             ? '1 scheduled · ${sendTimeLabel(scheduled.first.scheduledAt!.toLocal())}'
                             : '${scheduled.length} scheduled',
@@ -749,13 +750,13 @@ class _ConversationScreenState extends State<_ConversationScreen> {
                       ),
                     if (_viewOnce && _editing == null)
                       _Pill(
-                        icon: Icons.looks_one_rounded,
+                        icon: HakiIcons.numberCircleOne,
                         label: 'View once · next photo or voice note',
                         onClose: () => setState(() => _viewOnce = false),
                       ),
                     if (_sendAt != null && _editing == null)
                       _Pill(
-                        icon: Icons.schedule_rounded,
+                        icon: HakiIcons.clock,
                         label: 'Next message sends ${sendTimeLabel(_sendAt!)}',
                         onClose: () => setState(() => _sendAt = null),
                       ),
@@ -853,7 +854,7 @@ class _MessageList extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(isLounge ? Icons.forum_outlined : Icons.lock_rounded, size: 36, color: HakiColors.lime),
+              Icon(isLounge ? HakiIcons.chats : HakiIcons.lockFill, size: 36, color: HakiColors.lime),
               const SizedBox(height: 12),
               Text(
                 isLounge
@@ -908,7 +909,7 @@ class _MessageList extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Padding(
                   padding: EdgeInsets.only(left: 8),
-                  child: Icon(Icons.reply_rounded, color: HakiColors.lime),
+                  child: Icon(HakiIcons.arrowBendUpLeft, color: HakiColors.lime),
                 ),
               ),
               child: Align(
@@ -956,7 +957,7 @@ class _PrivacyNote extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(lounge ? Icons.public_rounded : Icons.lock_rounded, size: 13, color: HakiColors.textMuted),
+            Icon(lounge ? HakiIcons.globeHemisphereWest : HakiIcons.lockFill, size: 13, color: HakiColors.textMuted),
             const SizedBox(width: 6),
             Flexible(
               child: Text(
@@ -991,7 +992,7 @@ class _SearchBar extends StatelessWidget {
         height: 48,
         child: Row(
           children: [
-            Icon(Icons.search_rounded, color: Colors.white.withValues(alpha: 0.75)),
+            Icon(HakiIcons.magnifyingGlass, color: Colors.white.withValues(alpha: 0.75)),
             const SizedBox(width: 8),
             Expanded(
               child: TextField(
@@ -1007,7 +1008,7 @@ class _SearchBar extends StatelessWidget {
                 ),
               ),
             ),
-            IconButton(tooltip: 'Close search', icon: const Icon(Icons.close_rounded), onPressed: onClose),
+            IconButton(tooltip: 'Close search', icon: const Icon(HakiIcons.x), onPressed: onClose),
           ],
         ),
       ),
@@ -1043,7 +1044,7 @@ class _PinnedBar extends StatelessWidget {
                 ),
                 for (final m in pinned)
                   ListTile(
-                    leading: const Icon(Icons.push_pin_rounded, color: HakiColors.lime),
+                    leading: const Icon(HakiIcons.pushPinFill, color: HakiColors.lime),
                     title: Text(_label(m), maxLines: 2, overflow: TextOverflow.ellipsis),
                     subtitle: Text(
                       '${m.sender} · ${dayLabel(m.timestamp)}',
@@ -1066,7 +1067,7 @@ class _PinnedBar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(
             children: [
-              const Icon(Icons.push_pin_rounded, size: 18, color: HakiColors.lime),
+              const Icon(HakiIcons.pushPinFill, size: 18, color: HakiColors.lime),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -1130,7 +1131,7 @@ class _Header extends StatelessWidget {
     return Row(
       children: [
         if (!embedded) ...[
-          GlassIconButton(icon: Icons.arrow_back_rounded, tooltip: 'Back', onPressed: () => Navigator.pop(context)),
+          GlassIconButton(icon: HakiIcons.arrowLeft, tooltip: 'Back', onPressed: () => Navigator.pop(context)),
           const SizedBox(width: 8),
         ],
         Expanded(
@@ -1189,7 +1190,7 @@ class _Header extends StatelessWidget {
                 ),
                 PopupMenuButton<String>(
                   tooltip: 'More',
-                  icon: const Icon(Icons.more_horiz_rounded),
+                  icon: const Icon(HakiIcons.dotsThree),
                   color: HakiColors.surfaceHigh,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                   onSelected: (v) => _onMenu(context, v),
@@ -1218,7 +1219,7 @@ class _Header extends StatelessWidget {
         if (g != null) ...[
           const SizedBox(width: 8),
           GlassIconButton(
-            icon: Icons.call_rounded,
+            icon: HakiIcons.phoneFill,
             tooltip: 'Group call',
             onPressed: () => GroupCallView.open(context, g, me),
           ),
@@ -1226,7 +1227,7 @@ class _Header extends StatelessWidget {
         if (recipient != null) ...[
           const SizedBox(width: 8),
           GlassIconButton(
-            icon: Icons.videocam_rounded,
+            icon: HakiIcons.videoCamera,
             tooltip: 'Video call',
             onPressed: () => Navigator.push(
               context,
@@ -1235,7 +1236,7 @@ class _Header extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           GlassIconButton(
-            icon: Icons.call_rounded,
+            icon: HakiIcons.phoneFill,
             tooltip: 'Voice call',
             onPressed: () => Navigator.push(
               context,
@@ -1376,9 +1377,9 @@ class _Pill extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis)),
               if (onClose != null)
-                IconButton(tooltip: 'Cancel', icon: const Icon(Icons.close_rounded, size: 18), onPressed: onClose)
+                IconButton(tooltip: 'Cancel', icon: const Icon(HakiIcons.x, size: 18), onPressed: onClose)
               else
-                const Icon(Icons.chevron_right_rounded, size: 18),
+                const Icon(HakiIcons.caretRight, size: 18),
             ],
           ),
         ),
@@ -1422,7 +1423,7 @@ class _Composer extends StatelessWidget {
       onCancel = onCancelEdit;
       bar = Row(
         children: [
-          const Icon(Icons.edit_rounded, size: 20, color: HakiColors.lime),
+          const Icon(HakiIcons.pencilSimple, size: 20, color: HakiColors.lime),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -1450,7 +1451,7 @@ class _Composer extends StatelessWidget {
       onCancel = onCancelReply;
       bar = Row(
         children: [
-          const Icon(Icons.reply_rounded, size: 20, color: HakiColors.lime),
+          const Icon(HakiIcons.arrowBendUpLeft, size: 20, color: HakiColors.lime),
           const SizedBox(width: 8),
           Expanded(
             child: Text.rich(
@@ -1489,7 +1490,7 @@ class _Composer extends StatelessWidget {
                   Expanded(child: bar),
                   IconButton(
                     tooltip: editing != null ? 'Cancel edit' : (attachment != null ? 'Remove photo' : 'Cancel reply'),
-                    icon: const Icon(Icons.close_rounded, size: 18),
+                    icon: const Icon(HakiIcons.x, size: 18),
                     onPressed: onCancel,
                   ),
                 ],
@@ -1501,7 +1502,7 @@ class _Composer extends StatelessWidget {
           children: [
             if (editing == null) ...[
               GlassIconButton(
-                icon: Icons.add_rounded,
+                icon: HakiIcons.plus,
                 tooltip: 'Photo, GIF, sticker, poll or send later',
                 onPressed: onPickImage,
                 size: 52,
@@ -1557,7 +1558,7 @@ class _Composer extends StatelessWidget {
                               foregroundColor: HakiColors.onLime,
                               fixedSize: const Size(40, 40),
                             ),
-                            icon: Icon(editing != null ? Icons.check_rounded : Icons.arrow_upward_rounded, size: 20),
+                            icon: Icon(editing != null ? HakiIcons.check : HakiIcons.arrowUp, size: 20),
                           );
                         },
                       ),

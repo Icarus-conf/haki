@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/haki_theme.dart';
 import '../../../core/widgets/glass.dart';
 import '../../../models/message_envelope.dart';
+import '../../../models/post_model.dart';
 import '../../../models/story_model.dart';
 import '../../../models/user_model.dart';
 import '../../../services/api_service.dart';
@@ -14,9 +14,11 @@ import '../../../services/chat_service.dart';
 import '../../../services/crypto_service.dart';
 import '../../../services/message_sender.dart';
 import '../../../widgets/loading_indicator.dart';
+import '../../feed/view/sealed_media.dart';
 import '../../friends/view_model/friends_cubit.dart';
 import '../../session/view_model/session_cubit.dart';
 import '../view_model/stories_cubit.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 class StoryView extends StatefulWidget {
   final UserModel user;
@@ -38,6 +40,12 @@ class _StoryViewState extends State<StoryView> {
   final _replyFocus = FocusNode();
 
   late final UserModel _me = context.read<SessionCubit>().state.me!;
+
+  /// Each story's AES key, unwrapped once with my private key.
+  final _keys = <int, Future<List<int>?>>{};
+  Future<List<int>?> _keyOf(StoryModel s) => _keys[s.id] ??= s.key == null || s.iv == null
+      ? Future.value(null)
+      : context.read<CryptoService>().unwrapPostKey(s.key!, _me.username);
   bool get _mine => widget.user.id == _me.id;
 
   @override
@@ -142,18 +150,24 @@ class _StoryViewState extends State<StoryView> {
                   child: Text('Seen by ${viewers.length}', style: HakiText.display(26)),
                 ),
                 if (snap.connectionState != ConnectionState.done)
-                  const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator(strokeWidth: 2)))
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
                 else if (viewers.isEmpty)
                   const Padding(
                     padding: EdgeInsets.fromLTRB(20, 4, 20, 20),
-                    child: Text('No one yet. Friends who view it show up here.', style: TextStyle(color: HakiColors.textMuted)),
+                    child: Text(
+                      'No one yet. Friends who view it show up here.',
+                      style: TextStyle(color: HakiColors.textMuted),
+                    ),
                   ),
                 for (final v in viewers)
                   ListTile(
                     leading: AuraAvatar(user: v.user, size: 40, radius: 14),
                     title: Text(v.user.name),
                     trailing: v.liked
-                        ? const Icon(Icons.favorite_rounded, color: HakiColors.pink, semanticLabel: 'Loved it')
+                        ? const Icon(HakiIcons.heartFill, color: HakiColors.pink, semanticLabel: 'Loved it')
                         : null,
                   ),
               ],
@@ -196,13 +210,20 @@ class _StoryViewState extends State<StoryView> {
             },
             onDoubleTap: _mine ? null : () => context.read<StoriesCubit>().toggleLove(story),
             child: Center(
-              child: CachedNetworkImage(
-                imageUrl: '${ApiService.baseUrl}${story.content}',
-                fit: BoxFit.contain,
-                width: double.infinity,
-                height: double.infinity,
-                placeholder: (context, url) => const LoadingIndicator(size: 40),
-                errorWidget: (context, url, error) => const Icon(Icons.error, color: Colors.white),
+              child: FutureBuilder(
+                future: _keyOf(story),
+                builder: (context, snap) {
+                  final key = snap.data;
+                  if (snap.connectionState != ConnectionState.done) return const LoadingIndicator(size: 40);
+                  if (key == null) return const Icon(HakiIcons.lock, color: Colors.white54);
+                  // Same download-and-open cache as feed photos; keyed so each story gets a fresh tile
+                  return SealedMediaTile(
+                    key: ValueKey(story.id),
+                    media: PostMedia(url: story.content, iv: story.iv!),
+                    postKey: key,
+                    fit: BoxFit.contain,
+                  );
+                },
               ),
             ),
           ),
@@ -259,7 +280,7 @@ class _StoryViewState extends State<StoryView> {
                   ),
                   IconButton(
                     tooltip: 'Close',
-                    icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                    icon: const Icon(HakiIcons.x, color: Colors.white, size: 30),
                     onPressed: _close,
                   ),
                 ],
@@ -285,17 +306,17 @@ class _StoryViewState extends State<StoryView> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.visibility_rounded, size: 18),
+                              const Icon(HakiIcons.eye, size: 18),
                               const SizedBox(width: 6),
                               Text('Seen by ${story.viewCount ?? 0}'),
                               if ((story.likeCount ?? 0) > 0) ...[
                                 const SizedBox(width: 14),
-                                const Icon(Icons.favorite_rounded, size: 18, color: HakiColors.pink),
+                                const Icon(HakiIcons.heartFill, size: 18, color: HakiColors.pink),
                                 const SizedBox(width: 4),
                                 Text('${story.likeCount}'),
                               ],
                               const SizedBox(width: 4),
-                              const Icon(Icons.keyboard_arrow_up_rounded, size: 18),
+                              const Icon(HakiIcons.caretUp, size: 18),
                             ],
                           ),
                         ),
@@ -331,7 +352,7 @@ class _StoryViewState extends State<StoryView> {
                                       : IconButton(
                                           tooltip: 'Send reply',
                                           onPressed: _sendReply,
-                                          icon: const Icon(Icons.arrow_upward_rounded, color: HakiColors.lime),
+                                          icon: const Icon(HakiIcons.arrowUp, color: HakiColors.lime),
                                         ),
                                 ),
                               ],
@@ -340,7 +361,7 @@ class _StoryViewState extends State<StoryView> {
                         ),
                         const SizedBox(width: 8),
                         GlassIconButton(
-                          icon: story.liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                          icon: story.liked ? HakiIcons.heartFill : HakiIcons.heart,
                           tooltip: story.liked ? 'Unlove' : 'Love this story',
                           color: story.liked ? HakiColors.pink : null,
                           size: 52,

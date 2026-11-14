@@ -23,6 +23,8 @@ import 'features/session/view_model/session_state.dart';
 import 'features/stories/view_model/stories_cubit.dart';
 import 'features/conversation/view/conversation_view.dart';
 import 'services/api_service.dart';
+import 'features/feed/view/post_view.dart';
+import 'features/feed/view_model/feed_cubit.dart';
 import 'services/chat_service.dart';
 import 'services/crypto_service.dart';
 import 'services/native_calls.dart';
@@ -43,6 +45,7 @@ class _HakiAppState extends State<HakiApp> {
   StreamSubscription<String>? _systemMessages;
   StreamSubscription? _mentions;
   StreamSubscription? _storyLoves;
+  StreamSubscription? _postComments;
   StreamSubscription? _nativeCalls;
   late final AppLifecycleListener _lifecycle;
   Timer? _backupTimer;
@@ -92,6 +95,22 @@ class _HakiAppState extends State<HakiApp> {
       if (!mounted) return;
       final who = context.read<FriendsCubit>().state.byId(d['userId'] as int)?.name ?? 'A friend';
       showTopToast(navigatorKey.currentState?.overlay, '$who loved your story ❤️');
+    });
+    // Someone commented on my post, or replied to my comment
+    _postComments = context.read<ChatService>().on('post_comment').listen((d) {
+      if (!mounted) return;
+      final me = context.read<SessionCubit>().state.me?.id;
+      if (me == null || !(d['notify'] as List? ?? const []).contains(me)) return;
+      final who = d['author']?['displayName'] ?? d['author']?['username'] ?? 'A friend';
+      final postId = d['postId'] as int;
+      showTopToast(
+        navigatorKey.currentState?.overlay,
+        '$who commented on your post',
+        action: 'View',
+        onAction: () => navigatorKey.currentState?.push(
+          MaterialPageRoute(settings: const RouteSettings(name: PostView.route), builder: (_) => PostView(postId: postId)),
+        ),
+      );
     });
   }
 
@@ -182,6 +201,7 @@ class _HakiAppState extends State<HakiApp> {
     _systemMessages?.cancel();
     _mentions?.cancel();
     _storyLoves?.cancel();
+    _postComments?.cancel();
     _lifecycle.dispose();
     super.dispose();
   }
@@ -200,12 +220,14 @@ class _HakiAppState extends State<HakiApp> {
               context.read<FriendsCubit>().start(me);
               _restoreBackup(me.username);
               context.read<StoriesCubit>().load();
+              context.read<FeedCubit>().start(me);
               final api = context.read<ApiService>();
               context.read<PushService>().start().then((_) => NativeCalls.registerVoip(api));
             } else {
               context.read<FriendsCubit>().stop();
               _checkedKeys.clear();
               context.read<StoriesCubit>().clear();
+              context.read<FeedCubit>().stop();
               navigatorKey.currentState?.popUntil((r) => r.isFirst);
             }
           },

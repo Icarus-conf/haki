@@ -13,6 +13,7 @@ import '../../session/view_model/session_cubit.dart';
 import '../../session/view_model/session_state.dart';
 import 'blocked_users_view.dart';
 import 'security_views.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 String hakiCode(UserModel me) => 'haki:${me.username}';
 
@@ -85,7 +86,7 @@ class ProfileView extends StatelessWidget {
                           foregroundColor: HakiColors.onLime,
                           side: const BorderSide(color: HakiColors.ink, width: 3),
                         ),
-                        icon: const Icon(Icons.photo_camera_rounded, size: 18),
+                        icon: const Icon(HakiIcons.camera, size: 18),
                       ),
                     ),
                   ],
@@ -112,12 +113,12 @@ class ProfileView extends StatelessWidget {
                   spacing: 8,
                   children: [
                     _Chip(
-                      icon: Icons.circle,
+                      icon: HakiIcons.circleFill,
                       iconColor: HakiColors.lime,
                       label: (me.statusMessage?.isNotEmpty ?? false) ? me.statusMessage! : 'Set a status',
                       onTap: () => _EditSheet.status(context, me),
                     ),
-                    _Chip(icon: Icons.edit_rounded, label: 'Edit profile', onTap: () => _EditSheet.profile(context, me)),
+                    _Chip(icon: HakiIcons.pencilSimple, label: 'Edit profile', onTap: () => _EditSheet.profile(context, me)),
                   ],
                 ),
               ),
@@ -148,7 +149,7 @@ class ProfileView extends StatelessWidget {
                           Expanded(
                             child: _Tile(
                               glass: true,
-                              top: const Icon(Icons.fingerprint_rounded, color: Color(0xFFB9A8FF)),
+                              top: const Icon(HakiIcons.fingerprint, color: Color(0xFFB9A8FF)),
                               title: 'Key fingerprint',
                               subtitle: 'Compare with friends',
                               onTap: () => SafetyNumberSheet.show(context, me: me),
@@ -339,7 +340,7 @@ class _HandleFormState extends State<_HandleForm> {
                 ),
               ),
               const SizedBox(height: 12),
-              LimeButton(label: _busy ? 'Saving…' : 'Save', icon: Icons.check_rounded, onPressed: _ok && !_busy ? _save : null),
+              LimeButton(label: _busy ? 'Saving…' : 'Save', icon: HakiIcons.check, onPressed: _ok && !_busy ? _save : null),
               if (widget.current != null)
                 TextButton(
                   onPressed: _busy ? null : _remove,
@@ -465,7 +466,7 @@ class _Tile extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: HakiColors.textMuted),
+            const Icon(HakiIcons.caretRight, color: HakiColors.textMuted),
           ],
         ),
       ),

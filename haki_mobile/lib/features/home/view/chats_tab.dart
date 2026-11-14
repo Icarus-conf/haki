@@ -17,6 +17,7 @@ import '../../session/view_model/session_cubit.dart';
 import '../../settings/view_model/settings_cubit.dart';
 import '../../stories/view_model/stories_cubit.dart';
 import 'add_friend_sheet.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 class ChatsTab extends StatefulWidget {
   const ChatsTab({super.key, required this.onOpenChat, required this.onOpenProfile});
@@ -37,9 +38,11 @@ class _ChatsTabState extends State<ChatsTab> {
 
   /// Locked chats are shown (instead of the others) after Face ID, until the app leaves the screen.
   bool _showLocked = false;
-  late final _lifecycle = AppLifecycleListener(onHide: () {
-    if (_showLocked && mounted) setState(() => _showLocked = false);
-  });
+  late final _lifecycle = AppLifecycleListener(
+    onHide: () {
+      if (_showLocked && mounted) setState(() => _showLocked = false);
+    },
+  );
 
   @override
   void initState() {
@@ -82,9 +85,7 @@ class _ChatsTabState extends State<ChatsTab> {
     if (locked.isEmpty) _showLocked = false;
     // Locked chats never show in the normal list or search; after Face ID they show alone
     bool lockOk(Object o) => locked.contains(_key(o)) == _showLocked;
-    final folder = _filter.startsWith('f:')
-        ? folders.where((f) => f.name == _filter.substring(2)).firstOrNull
-        : null;
+    final folder = _filter.startsWith('f:') ? folders.where((f) => f.name == _filter.substring(2)).firstOrNull : null;
     if (_filter.startsWith('f:') && folder == null) _filter = 'all'; // folder was deleted
     final q = _query.toLowerCase();
     final matches = friendsState.friends
@@ -95,7 +96,10 @@ class _ChatsTabState extends State<ChatsTab> {
         ? matches.where((f) => pinnedIds.contains(f.id)).toList()
         : <UserModel>[];
     final rest = matches.where((f) => !pinned.contains(f)).toList();
-    final groups = friendsState.groups.where(lockOk).where((g) => q.isEmpty || g.name.toLowerCase().contains(q)).toList();
+    final groups = friendsState.groups
+        .where(lockOk)
+        .where((g) => q.isEmpty || g.name.toLowerCase().contains(q))
+        .toList();
     // Friends and groups in one list, most recent conversation first
     DateTime? lastAt(Object o) => o is GroupModel ? o.lastMessage?.timestamp : (o as UserModel).lastMessage?.timestamp;
     bool inFilter(Object o) => switch (_filter) {
@@ -106,13 +110,14 @@ class _ChatsTabState extends State<ChatsTab> {
       ),
       _ => true,
     };
-    final rows = <Object>[...rest, ...groups].where(inFilter).toList()..sort((a, b) {
-      final at = lastAt(a), bt = lastAt(b);
-      if (at == null && bt == null) return 0;
-      if (at == null) return 1;
-      if (bt == null) return -1;
-      return bt.compareTo(at);
-    });
+    final rows = <Object>[...rest, ...groups].where(inFilter).toList()
+      ..sort((a, b) {
+        final at = lastAt(a), bt = lastAt(b);
+        if (at == null && bt == null) return 0;
+        if (at == null) return 1;
+        if (bt == null) return -1;
+        return bt.compareTo(at);
+      });
     final unread = friendsState.totalUnread;
 
     return Stack(
@@ -149,12 +154,12 @@ class _ChatsTabState extends State<ChatsTab> {
                                     border: InputBorder.none,
                                     focusedBorder: InputBorder.none,
                                     contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                                    prefixIcon: Icon(Icons.search_rounded, color: Colors.white.withValues(alpha: 0.75)),
+                                    prefixIcon: Icon(HakiIcons.magnifyingGlass, color: Colors.white.withValues(alpha: 0.75)),
                                     suffixIcon: _query.isEmpty
                                         ? null
                                         : IconButton(
                                             tooltip: 'Clear search',
-                                            icon: const Icon(Icons.close_rounded, size: 18),
+                                            icon: const Icon(HakiIcons.x, size: 18),
                                             onPressed: () => setState(() {
                                               _search.clear();
                                               _query = '';
@@ -182,9 +187,7 @@ class _ChatsTabState extends State<ChatsTab> {
                           text: 'Hey ${me.name.split(' ').first},\n',
                           children: [
                             TextSpan(
-                              text: unread == 0
-                                  ? 'all caught up'
-                                  : '$unread unread',
+                              text: unread == 0 ? 'all caught up' : '$unread unread',
                               style: HakiText.display(44, color: Colors.white.withValues(alpha: 0.55)),
                             ),
                           ],
@@ -202,7 +205,9 @@ class _ChatsTabState extends State<ChatsTab> {
                   if ((f.daysToBirthday(DateTime.now()) ?? 9) <= 1)
                     SliverToBoxAdapter(
                       child: _ChatRow(
-                        title: f.daysToBirthday(DateTime.now()) == 0 ? '${f.name}’s birthday is today' : '${f.name}’s birthday is tomorrow',
+                        title: f.daysToBirthday(DateTime.now()) == 0
+                            ? '${f.name}’s birthday is today'
+                            : '${f.name}’s birthday is tomorrow',
                         leading: AuraAvatar(user: f, size: 52, radius: 19),
                         preview: f.daysToBirthday(DateTime.now()) == 0 ? '🎂 Say happy birthday' : '🎁 Don’t forget',
                         onTap: () => _open(f),
@@ -233,17 +238,13 @@ class _ChatsTabState extends State<ChatsTab> {
                 q.isEmpty ? 'Chats' : 'Results',
                 trailing: TextButton.icon(
                   onPressed: _newGroup,
-                  icon: const Icon(Icons.group_add_rounded, size: 18),
+                  icon: const Icon(HakiIcons.userCirclePlus, size: 18),
                   label: const Text('New group'),
                   style: TextButton.styleFrom(foregroundColor: HakiColors.lime),
                 ),
               ),
               SliverToBoxAdapter(
-                child: _FolderChips(
-                  selected: _filter,
-                  folders: folders,
-                  onSelect: (f) => setState(() => _filter = f),
-                ),
+                child: _FolderChips(selected: _filter, folders: folders, onSelect: (f) => setState(() => _filter = f)),
               ),
               if (_showLocked)
                 SliverToBoxAdapter(
@@ -329,7 +330,10 @@ class _SectionTitle extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: Semantics(header: true, child: Text(text, style: HakiText.display(19, weight: FontWeight.w700))),
+              child: Semantics(
+                header: true,
+                child: Text(text, style: HakiText.display(19, weight: FontWeight.w700)),
+              ),
             ),
             ?trailing,
           ],
@@ -360,8 +364,16 @@ class _StoriesRow extends StatelessWidget {
                   : () async {
                       final img = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1600);
                       if (img == null || !context.mounted) return;
-                      final ok = await context.read<StoriesCubit>().post(img.path);
-                      if (context.mounted) showHakiToast(context, ok ? 'Story posted' : 'Couldn’t post story', isError: !ok);
+                      final me = context.read<SessionCubit>().state.me;
+                      if (me == null) return;
+                      final ok = await context.read<StoriesCubit>().post(
+                        img.path,
+                        me: me,
+                        friends: context.read<FriendsCubit>().state.friends,
+                      );
+                      if (context.mounted) {
+                        showHakiToast(context, ok ? 'Story posted' : 'Couldn’t post story', isError: !ok);
+                      }
                     },
               child: Glass(
                 radius: 22,
@@ -370,7 +382,7 @@ class _StoriesRow extends StatelessWidget {
                   height: 62,
                   child: stories.isPosting
                       ? const Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.add_rounded),
+                      : const Icon(HakiIcons.plus),
                 ),
               ),
             ),
@@ -384,7 +396,9 @@ class _StoriesRow extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => StoryView(user: entry.key, stories: entry.value)),
+                    MaterialPageRoute(
+                      builder: (_) => StoryView(user: entry.key, stories: entry.value),
+                    ),
                   ),
                   child: Container(
                     padding: const EdgeInsets.all(2.5),
@@ -458,7 +472,12 @@ class _PinnedCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(friend.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      Text(
+                        friend.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
                       Text(
                         preview ?? 'Say hi',
                         maxLines: 1,
@@ -519,7 +538,7 @@ class _LockAvatar extends StatelessWidget {
       width: 52,
       height: 52,
       decoration: BoxDecoration(color: HakiColors.surfaceHigh, borderRadius: BorderRadius.circular(18)),
-      child: const Icon(Icons.lock_rounded, color: HakiColors.lime),
+      child: const Icon(HakiIcons.lockFill, color: HakiColors.lime),
     );
   }
 }
@@ -646,7 +665,11 @@ class _EmptyChats extends StatelessWidget {
               style: TextStyle(color: HakiColors.textMuted, height: 1.4),
             ),
             const SizedBox(height: 16),
-            LimeButton(label: 'Add a friend', icon: Icons.person_add_alt_1_rounded, onPressed: () => AddFriendSheet.show(context)),
+            LimeButton(
+              label: 'Add a friend',
+              icon: HakiIcons.userPlus,
+              onPressed: () => AddFriendSheet.show(context),
+            ),
           ],
         ),
       ),
@@ -671,7 +694,7 @@ class _ChatActions {
               child: Text(friend.name, style: HakiText.display(22, weight: FontWeight.w700)),
             ),
             ListTile(
-              leading: Icon(pinned ? Icons.push_pin_outlined : Icons.push_pin_rounded),
+              leading: Icon(pinned ? HakiIcons.pushPin : HakiIcons.pushPinFill),
               title: Text(pinned ? 'Unpin' : 'Pin to top'),
               onTap: () {
                 Navigator.pop(sheet);
@@ -679,7 +702,7 @@ class _ChatActions {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.folder_outlined),
+              leading: const Icon(HakiIcons.folder),
               title: const Text('Add to folder…'),
               onTap: () {
                 Navigator.pop(sheet);
@@ -687,7 +710,7 @@ class _ChatActions {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.person_remove_outlined),
+              leading: const Icon(HakiIcons.userMinus),
               title: const Text('Remove friend'),
               onTap: () async {
                 Navigator.pop(sheet);
@@ -699,11 +722,13 @@ class _ChatActions {
                 );
                 if (!sure) return;
                 final ok = await friends.remove(friend.id);
-                if (context.mounted) showHakiToast(context, ok ? 'Removed ${friend.name}' : 'Couldn’t remove', isError: !ok);
+                if (context.mounted) {
+                  showHakiToast(context, ok ? 'Removed ${friend.name}' : 'Couldn’t remove', isError: !ok);
+                }
               },
             ),
             ListTile(
-              leading: const Icon(Icons.block_rounded, color: HakiColors.dangerText),
+              leading: const Icon(HakiIcons.prohibit, color: HakiColors.dangerText),
               title: const Text('Block', style: TextStyle(color: HakiColors.dangerText)),
               onTap: () async {
                 Navigator.pop(sheet);
@@ -715,7 +740,9 @@ class _ChatActions {
                 );
                 if (!sure) return;
                 final ok = await friends.block(friend.id);
-                if (context.mounted) showHakiToast(context, ok ? 'Blocked ${friend.name}' : 'Couldn’t block', isError: !ok);
+                if (context.mounted) {
+                  showHakiToast(context, ok ? 'Blocked ${friend.name}' : 'Couldn’t block', isError: !ok);
+                }
               },
             ),
             const SizedBox(height: 8),
@@ -813,7 +840,7 @@ abstract final class FolderPicker {
                   checkColor: HakiColors.onLime,
                 ),
               ListTile(
-                leading: const Icon(Icons.create_new_folder_outlined, color: HakiColors.lime),
+                leading: const Icon(HakiIcons.folderPlus, color: HakiColors.lime),
                 title: const Text('New folder'),
                 onTap: () async {
                   final name = await _askName(sheet);

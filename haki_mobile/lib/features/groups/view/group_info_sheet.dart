@@ -9,6 +9,7 @@ import '../../friends/view_model/friends_state.dart';
 import '../../session/view_model/session_cubit.dart';
 import 'group_avatar.dart';
 import 'pick_friends_view.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// Members, add people, leave. Returns true when the user left the group.
 abstract final class GroupInfoSheet {
@@ -49,7 +50,7 @@ abstract final class GroupInfoSheet {
                   leading: const CircleAvatar(
                     backgroundColor: HakiColors.lime,
                     foregroundColor: HakiColors.onLime,
-                    child: Icon(Icons.person_add_alt_1_rounded),
+                    child: Icon(HakiIcons.userPlus),
                   ),
                   title: const Text('Add people'),
                   onTap: () => PickFriendsView.addTo(sheet, g),
@@ -86,7 +87,7 @@ abstract final class GroupInfoSheet {
                       showHakiToast(sheet, 'Couldn’t leave the group', isError: true);
                     }
                   },
-                  icon: const Icon(Icons.logout_rounded, color: HakiColors.dangerText),
+                  icon: const Icon(HakiIcons.signOut, color: HakiColors.dangerText),
                   label: const Text('Leave group', style: TextStyle(color: HakiColors.dangerText)),
                 ),
               ],

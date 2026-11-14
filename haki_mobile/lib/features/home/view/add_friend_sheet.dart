@@ -5,6 +5,7 @@ import '../../../core/theme/haki_theme.dart';
 import '../../../core/widgets/glass.dart';
 import '../../../core/widgets/qr_scanner_view.dart';
 import '../../friends/view_model/friends_cubit.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// Add by scanning a Haki code (QR = `haki:<username>`) or typing an email / username.
 class AddFriendSheet extends StatefulWidget {
@@ -64,7 +65,7 @@ class _AddFriendSheetState extends State<AddFriendSheet> {
             style: TextStyle(color: HakiColors.textMuted),
           ),
           const SizedBox(height: 20),
-          LimeButton(label: 'Scan Haki code', icon: Icons.qr_code_scanner_rounded, onPressed: _busy ? null : _scan),
+          LimeButton(label: 'Scan Haki code', icon: HakiIcons.scan, onPressed: _busy ? null : _scan),
           const SizedBox(height: 20),
           Row(
             children: [
@@ -85,7 +86,7 @@ class _AddFriendSheetState extends State<AddFriendSheet> {
             onSubmitted: (_) => _send(),
             decoration: const InputDecoration(
               labelText: 'Email, @username or Haki code',
-              prefixIcon: Icon(Icons.alternate_email_rounded),
+              prefixIcon: Icon(HakiIcons.at),
             ),
           ),
           const SizedBox(height: 12),

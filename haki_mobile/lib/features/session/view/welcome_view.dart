@@ -6,6 +6,7 @@ import '../../../core/widgets/glass.dart';
 import '../../../models/user_model.dart';
 import 'auth_view.dart';
 import '../../profile/view/security_views.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 class WelcomeView extends StatelessWidget {
   const WelcomeView({super.key});
@@ -41,7 +42,7 @@ class WelcomeView extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.lock_rounded, size: 12),
+                            Icon(HakiIcons.lockFill, size: 12),
                             SizedBox(width: 5),
                             Text('End-to-end', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
                           ],
@@ -70,7 +71,7 @@ class WelcomeView extends StatelessWidget {
                   const SizedBox(height: 24),
                   LimeButton(
                     label: 'Get started',
-                    icon: Icons.arrow_forward_rounded,
+                    icon: HakiIcons.arrowRight,
                     onPressed: () => _open(context, AuthMode.signUp),
                   ),
                   const SizedBox(height: 12),

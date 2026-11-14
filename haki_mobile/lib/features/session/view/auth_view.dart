@@ -9,6 +9,7 @@ import '../../../core/theme/haki_theme.dart';
 import '../../../core/widgets/glass.dart';
 import '../../../core/widgets/qr_scanner_view.dart';
 import '../view_model/session_cubit.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 enum AuthMode { signIn, signUp, restore }
 
@@ -118,7 +119,7 @@ class _AuthViewState extends State<AuthView> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: GlassIconButton(
-                          icon: Icons.arrow_back_rounded,
+                          icon: HakiIcons.arrowLeft,
                           tooltip: 'Back',
                           onPressed: () => Navigator.pop(context),
                         ),
@@ -138,7 +139,7 @@ class _AuthViewState extends State<AuthView> {
                         controller: _username,
                         decoration: const InputDecoration(
                           labelText: 'Username',
-                          prefixIcon: Icon(Icons.alternate_email_rounded),
+                          prefixIcon: Icon(HakiIcons.at),
                         ),
                         autocorrect: false,
                         textInputAction: TextInputAction.next,
@@ -150,7 +151,7 @@ class _AuthViewState extends State<AuthView> {
                           controller: _displayName,
                           decoration: const InputDecoration(
                             labelText: 'Display name',
-                            prefixIcon: Icon(Icons.badge_outlined),
+                            prefixIcon: Icon(HakiIcons.identificationBadge),
                           ),
                           textInputAction: TextInputAction.next,
                         ),
@@ -159,7 +160,7 @@ class _AuthViewState extends State<AuthView> {
                           controller: _email,
                           decoration: const InputDecoration(
                             labelText: 'Email',
-                            prefixIcon: Icon(Icons.mail_outline_rounded),
+                            prefixIcon: Icon(HakiIcons.envelopeSimple),
                           ),
                           keyboardType: TextInputType.emailAddress,
                           autocorrect: false,
@@ -173,10 +174,10 @@ class _AuthViewState extends State<AuthView> {
                         obscureText: !_showPassword,
                         decoration: InputDecoration(
                           labelText: 'Password',
-                          prefixIcon: const Icon(Icons.lock_outline_rounded),
+                          prefixIcon: const Icon(HakiIcons.lock),
                           suffixIcon: IconButton(
                             tooltip: _showPassword ? 'Hide password' : 'Show password',
-                            icon: Icon(_showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                            icon: Icon(_showPassword ? HakiIcons.eyeSlash : HakiIcons.eye),
                             onPressed: () => setState(() => _showPassword = !_showPassword),
                           ),
                         ),
@@ -195,7 +196,7 @@ class _AuthViewState extends State<AuthView> {
                           style: HakiText.mono(20),
                           decoration: const InputDecoration(
                             labelText: 'Code from your authenticator app',
-                            prefixIcon: Icon(Icons.shield_outlined),
+                            prefixIcon: Icon(HakiIcons.shieldCheck),
                             counterText: '',
                           ),
                           validator: (v) => RegExp(r'^\d{6}$').hasMatch(v?.trim() ?? '') ? null : 'Enter the 6 digits',
@@ -210,7 +211,7 @@ class _AuthViewState extends State<AuthView> {
                           decoration: const InputDecoration(
                             labelText: 'Invite code',
                             helperText: 'Haki is invite-only right now. Ask a friend for a code.',
-                            prefixIcon: Icon(Icons.confirmation_number_outlined),
+                            prefixIcon: Icon(HakiIcons.ticket),
                           ),
                           validator: _required,
                         ),
@@ -225,7 +226,7 @@ class _AuthViewState extends State<AuthView> {
                           controller: _bio,
                           decoration: const InputDecoration(
                             labelText: 'Short bio (optional)',
-                            prefixIcon: Icon(Icons.edit_note_rounded),
+                            prefixIcon: Icon(HakiIcons.notePencil),
                           ),
                         ),
                       ],
@@ -242,7 +243,7 @@ class _AuthViewState extends State<AuthView> {
                             alignLabelWithHint: true,
                             suffixIcon: IconButton(
                               tooltip: 'Scan recovery QR',
-                              icon: const Icon(Icons.qr_code_scanner_rounded),
+                              icon: const Icon(HakiIcons.scan),
                               onPressed: _scanPhrase,
                             ),
                           ),
@@ -287,7 +288,7 @@ class _AvatarPicker extends StatelessWidget {
             width: 96,
             height: 96,
             child: path == null
-                ? const Icon(Icons.add_a_photo_outlined, size: 30)
+                ? const Icon(HakiIcons.cameraPlus, size: 30)
                 : ClipRRect(
                     borderRadius: BorderRadius.circular(34),
                     child: kIsWeb

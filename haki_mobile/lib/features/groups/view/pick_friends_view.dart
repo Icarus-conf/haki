@@ -5,6 +5,7 @@ import '../../../core/theme/haki_theme.dart';
 import '../../../core/widgets/glass.dart';
 import '../../../models/group_model.dart';
 import '../../friends/view_model/friends_cubit.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// New group (name + friends), or "Add people" to an existing [group].
 class PickFriendsView extends StatefulWidget {
@@ -71,7 +72,7 @@ class _PickFriendsViewState extends State<PickFriendsView> {
                   padding: const EdgeInsets.fromLTRB(12, 6, 20, 0),
                   child: Row(
                     children: [
-                      GlassIconButton(icon: Icons.arrow_back_rounded, tooltip: 'Back', onPressed: () => Navigator.pop(context)),
+                      GlassIconButton(icon: HakiIcons.arrowLeft, tooltip: 'Back', onPressed: () => Navigator.pop(context)),
                       const SizedBox(width: 12),
                       Expanded(child: Text(isNew ? 'New group' : 'Add people', style: HakiText.display(30))),
                     ],
@@ -92,7 +93,7 @@ class _PickFriendsViewState extends State<PickFriendsView> {
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 6),
                   child: Row(
                     children: [
-                      const Icon(Icons.lock_rounded, size: 14, color: HakiColors.textMuted),
+                      const Icon(HakiIcons.lockFill, size: 14, color: HakiColors.textMuted),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
@@ -146,7 +147,7 @@ class _PickFriendsViewState extends State<PickFriendsView> {
                 label: isNew
                     ? (_picked.isEmpty ? 'Create group' : 'Create with ${_picked.length + 1} people')
                     : (_picked.isEmpty ? 'Add' : 'Add ${_picked.length}'),
-                icon: isNew ? Icons.group_add_rounded : Icons.person_add_alt_1_rounded,
+                icon: isNew ? HakiIcons.userCirclePlus : HakiIcons.userPlus,
                 busy: _busy,
                 onPressed: canSave && !_busy ? _save : null,
               ),

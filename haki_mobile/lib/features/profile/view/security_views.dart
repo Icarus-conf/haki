@@ -14,6 +14,7 @@ import '../../../core/widgets/qr_scanner_view.dart';
 import '../../../services/api_service.dart';
 import '../../../services/crypto_service.dart';
 import '../../session/view_model/session_cubit.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// Devices signed in to this account, with Remove, and "Link a device".
 class DevicesView extends StatefulWidget {
@@ -79,7 +80,7 @@ class _DevicesViewState extends State<DevicesView> {
               style: TextStyle(color: HakiColors.textMuted, height: 1.4),
             ),
             const SizedBox(height: 16),
-            LimeButton(label: 'Link a device', icon: Icons.qr_code_scanner_rounded, onPressed: _link),
+            LimeButton(label: 'Link a device', icon: HakiIcons.scan, onPressed: _link),
             const SizedBox(height: 20),
             if (list == null)
               const Center(
@@ -96,10 +97,10 @@ class _DevicesViewState extends State<DevicesView> {
                       contentPadding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
                       leading: Icon(
                         d['platform'] == 'web'
-                            ? Icons.language_rounded
+                            ? HakiIcons.globe
                             : d['platform'] == 'macos'
-                            ? Icons.laptop_mac_rounded
-                            : Icons.smartphone_rounded,
+                            ? HakiIcons.laptop
+                            : HakiIcons.deviceMobile,
                         color: d['current'] == true ? HakiColors.lime : null,
                       ),
                       title: Text(d['current'] == true ? '${d['name']} · this device' : '${d['name']}'),
@@ -112,7 +113,7 @@ class _DevicesViewState extends State<DevicesView> {
                           ? null
                           : IconButton(
                               tooltip: 'Remove ${d['name']}',
-                              icon: const Icon(Icons.logout_rounded, color: HakiColors.dangerText),
+                              icon: const Icon(HakiIcons.signOut, color: HakiColors.dangerText),
                               onPressed: () => _remove(d),
                             ),
                     ),
@@ -210,7 +211,7 @@ class _ApproveLinkViewState extends State<ApproveLinkView> {
               style: TextStyle(color: HakiColors.textMuted, height: 1.4),
             ),
             const SizedBox(height: 20),
-            LimeButton(label: 'Scan code', icon: Icons.qr_code_scanner_rounded, onPressed: _busy ? null : _scan),
+            LimeButton(label: 'Scan code', icon: HakiIcons.scan, onPressed: _busy ? null : _scan),
             const SizedBox(height: 20),
             TextField(
               controller: _code,
@@ -499,7 +500,7 @@ class _TwoStepViewState extends State<TwoStepView> {
           else if (_enabled!) ...[
             const Row(
               children: [
-                Icon(Icons.verified_user_rounded, color: HakiColors.lime),
+                Icon(HakiIcons.shieldCheckFill, color: HakiColors.lime),
                 SizedBox(width: 8),
                 Text('On', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17)),
               ],
@@ -525,7 +526,7 @@ class _TwoStepViewState extends State<TwoStepView> {
           ] else if (setup == null)
             LimeButton(
               label: 'Turn on',
-              icon: Icons.shield_rounded,
+              icon: HakiIcons.shieldCheckFill,
               busy: _busy,
               onPressed: () => _run(() async {
                 final s = await _api.twoStepSetup();

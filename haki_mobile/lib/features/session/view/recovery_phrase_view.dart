@@ -5,6 +5,7 @@ import '../../../core/theme/haki_theme.dart';
 import '../../../core/widgets/glass.dart';
 import '../view_model/session_cubit.dart';
 import 'recovery_phrase_panel.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 enum _Status { checking, ok, mismatch, missing }
 
@@ -77,7 +78,7 @@ class _RecoveryPhraseViewState extends State<RecoveryPhraseView> {
               children: [
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: GlassIconButton(icon: Icons.arrow_back_rounded, tooltip: 'Back', onPressed: () => Navigator.pop(context)),
+                  child: GlassIconButton(icon: HakiIcons.arrowLeft, tooltip: 'Back', onPressed: () => Navigator.pop(context)),
                 ),
                 const SizedBox(height: 24),
                 Text('Recovery words', style: HakiText.display(42)),

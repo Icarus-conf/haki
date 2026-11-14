@@ -7,6 +7,7 @@ import 'features/call/view_model/group_call_cubit.dart';
 import 'features/friends/view_model/friends_cubit.dart';
 import 'features/session/view_model/session_cubit.dart';
 import 'features/settings/view_model/settings_cubit.dart';
+import 'features/feed/view_model/feed_cubit.dart';
 import 'features/stories/view_model/stories_cubit.dart';
 import 'services/api_service.dart';
 import 'services/chat_service.dart';
@@ -39,7 +40,8 @@ void main() {
             create: (_) => SessionCubit(api: api, chat: chat, crypto: crypto, push: push)..tryAutoLogin(),
           ),
           BlocProvider(create: (_) => FriendsCubit(api: api, chat: chat, crypto: crypto)),
-          BlocProvider(create: (_) => StoriesCubit(api: api, chat: chat)),
+          BlocProvider(create: (_) => StoriesCubit(api: api, chat: chat, crypto: crypto)),
+          BlocProvider(create: (_) => FeedCubit(api: api, chat: chat, crypto: crypto)),
           BlocProvider(create: (_) => SettingsCubit()..load()),
           BlocProvider(create: (_) => CallCubit(chat: chat, webrtc: webrtc)),
           BlocProvider(

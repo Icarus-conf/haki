@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/session/view_model/session_cubit.dart';
 import '../../services/api_service.dart';
 import '../loading_indicator.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 class EncryptedImage extends StatefulWidget {
   final String url;
@@ -85,20 +86,20 @@ class _EncryptedImageState extends State<EncryptedImage> {
       return Container(
         height: 200,
         color: const Color(0xFF1C1C26),
-        child: const Center(child: Icon(Icons.error_outline, color: Colors.red)),
+        child: const Center(child: Icon(HakiIcons.warningCircle, color: Colors.red)),
       );
     }
     if (_decryptedBytes == null) {
       return Container(
         height: 200,
         color: const Color(0xFF1C1C26),
-        child: const Center(child: Icon(Icons.lock_outline, color: Color(0xFF8E8EA6))),
+        child: const Center(child: Icon(HakiIcons.lock, color: Color(0xFF8E8EA6))),
       );
     }
     return Image.memory(
       _decryptedBytes!,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image)),
+      errorBuilder: (context, error, stackTrace) => const Center(child: Icon(HakiIcons.imageBroken)),
     );
   }
 }

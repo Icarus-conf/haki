@@ -13,7 +13,7 @@ part of 'stories_cubit.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
-mixin _$StoriesState {
+mixin _$StoriesState implements DiagnosticableTreeMixin {
 
  List<StoryModel> get stories; bool get isPosting;
 /// Create a copy of StoriesState
@@ -23,6 +23,13 @@ mixin _$StoriesState {
 $StoriesStateCopyWith<StoriesState> get copyWith => _$StoriesStateCopyWithImpl<StoriesState>(this as StoriesState, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  final _this = this as StoriesState;
+  properties
+    ..add(DiagnosticsProperty('type', 'StoriesState'))
+    ..add(DiagnosticsProperty('stories', _this.stories))..add(DiagnosticsProperty('isPosting', _this.isPosting));
+}
 
 @override
 bool operator ==(Object other) {
@@ -38,7 +45,7 @@ int get hashCode {
 }
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   final _this = this as StoriesState;
   return 'StoriesState(stories: ${_this.stories}, isPosting: ${_this.isPosting})';
 }
@@ -212,7 +219,7 @@ return $default(_that.stories,_that.isPosting);case _:
 /// @nodoc
 
 
-class _StoriesState extends StoriesState {
+class _StoriesState extends StoriesState with DiagnosticableTreeMixin {
   const _StoriesState({ List<StoryModel> stories = const [], this.isPosting = false}): _stories = stories,super._();
   
 
@@ -232,6 +239,12 @@ class _StoriesState extends StoriesState {
 _$StoriesStateCopyWith<_StoriesState> get copyWith => __$StoriesStateCopyWithImpl<_StoriesState>(this, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    properties
+    ..add(DiagnosticsProperty('type', 'StoriesState'))
+    ..add(DiagnosticsProperty('stories', stories))..add(DiagnosticsProperty('isPosting', isPosting));
+}
 
 @override
 bool operator ==(Object other) {
@@ -245,7 +258,7 @@ int get hashCode {
 }
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
     return 'StoriesState(stories: $stories, isPosting: $isPosting)';
 }
 

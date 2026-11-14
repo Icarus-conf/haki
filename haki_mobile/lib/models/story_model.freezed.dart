@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StoryModel {
 
- int get id; int get userId; String get content; String get type; DateTime get createdAt; DateTime get expiresAt; UserModel? get user; bool get seen; bool get liked;/// Only on your own stories.
+ int get id; int get userId;/// URL of the sealed image; open it with [key] (my wrapped copy) and [iv].
+ String get content; String get type; DateTime get createdAt; DateTime get expiresAt; UserModel? get user; String? get key; String? get iv; bool get seen; bool get liked;/// Only on your own stories.
  int? get viewCount; int? get likeCount;
 /// Create a copy of StoryModel
 /// with the given fields replaced by the non-null parameter values.
@@ -28,20 +29,20 @@ $StoryModelCopyWith<StoryModel> get copyWith => _$StoryModelCopyWithImpl<StoryMo
 @override
 bool operator ==(Object other) {
   final _this = this as StoryModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StoryModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.userId, _this.userId) || other.userId == _this.userId)&&(identical(other.content, _this.content) || other.content == _this.content)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.expiresAt, _this.expiresAt) || other.expiresAt == _this.expiresAt)&&(identical(other.user, _this.user) || other.user == _this.user)&&(identical(other.seen, _this.seen) || other.seen == _this.seen)&&(identical(other.liked, _this.liked) || other.liked == _this.liked)&&(identical(other.viewCount, _this.viewCount) || other.viewCount == _this.viewCount)&&(identical(other.likeCount, _this.likeCount) || other.likeCount == _this.likeCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StoryModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.userId, _this.userId) || other.userId == _this.userId)&&(identical(other.content, _this.content) || other.content == _this.content)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.expiresAt, _this.expiresAt) || other.expiresAt == _this.expiresAt)&&(identical(other.user, _this.user) || other.user == _this.user)&&(identical(other.key, _this.key) || other.key == _this.key)&&(identical(other.iv, _this.iv) || other.iv == _this.iv)&&(identical(other.seen, _this.seen) || other.seen == _this.seen)&&(identical(other.liked, _this.liked) || other.liked == _this.liked)&&(identical(other.viewCount, _this.viewCount) || other.viewCount == _this.viewCount)&&(identical(other.likeCount, _this.likeCount) || other.likeCount == _this.likeCount));
 }
 
 
 @override
 int get hashCode {
   final _this = this as StoryModel;
-  return Object.hash(runtimeType,_this.id,_this.userId,_this.content,_this.type,_this.createdAt,_this.expiresAt,_this.user,_this.seen,_this.liked,_this.viewCount,_this.likeCount);
+  return Object.hash(runtimeType,_this.id,_this.userId,_this.content,_this.type,_this.createdAt,_this.expiresAt,_this.user,_this.key,_this.iv,_this.seen,_this.liked,_this.viewCount,_this.likeCount);
 }
 
 @override
 String toString() {
   final _this = this as StoryModel;
-  return 'StoryModel(id: ${_this.id}, userId: ${_this.userId}, content: ${_this.content}, type: ${_this.type}, createdAt: ${_this.createdAt}, expiresAt: ${_this.expiresAt}, user: ${_this.user}, seen: ${_this.seen}, liked: ${_this.liked}, viewCount: ${_this.viewCount}, likeCount: ${_this.likeCount})';
+  return 'StoryModel(id: ${_this.id}, userId: ${_this.userId}, content: ${_this.content}, type: ${_this.type}, createdAt: ${_this.createdAt}, expiresAt: ${_this.expiresAt}, user: ${_this.user}, key: ${_this.key}, iv: ${_this.iv}, seen: ${_this.seen}, liked: ${_this.liked}, viewCount: ${_this.viewCount}, likeCount: ${_this.likeCount})';
 }
 
 
@@ -52,7 +53,7 @@ abstract mixin class $StoryModelCopyWith<$Res>  {
   factory $StoryModelCopyWith(StoryModel value, $Res Function(StoryModel) _then) = _$StoryModelCopyWithImpl;
 @useResult
 $Res call({
- int id, int userId, String content, String type, DateTime createdAt, DateTime expiresAt, UserModel? user, bool seen, bool liked, int? viewCount, int? likeCount
+ int id, int userId, String content, String type, DateTime createdAt, DateTime expiresAt, UserModel? user, String? key, String? iv, bool seen, bool liked, int? viewCount, int? likeCount
 });
 
 
@@ -69,7 +70,7 @@ class _$StoryModelCopyWithImpl<$Res>
 
 /// Create a copy of StoryModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? content = null,Object? type = null,Object? createdAt = null,Object? expiresAt = null,Object? user = freezed,Object? seen = null,Object? liked = null,Object? viewCount = freezed,Object? likeCount = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? content = null,Object? type = null,Object? createdAt = null,Object? expiresAt = null,Object? user = freezed,Object? key = freezed,Object? iv = freezed,Object? seen = null,Object? liked = null,Object? viewCount = freezed,Object? likeCount = freezed,}) {
   return _then(StoryModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -78,7 +79,9 @@ as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,expiresAt: null == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
 as DateTime,user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
-as UserModel?,seen: null == seen ? _self.seen : seen // ignore: cast_nullable_to_non_nullable
+as UserModel?,key: freezed == key ? _self.key : key // ignore: cast_nullable_to_non_nullable
+as String?,iv: freezed == iv ? _self.iv : iv // ignore: cast_nullable_to_non_nullable
+as String?,seen: null == seen ? _self.seen : seen // ignore: cast_nullable_to_non_nullable
 as bool,liked: null == liked ? _self.liked : liked // ignore: cast_nullable_to_non_nullable
 as bool,viewCount: freezed == viewCount ? _self.viewCount : viewCount // ignore: cast_nullable_to_non_nullable
 as int?,likeCount: freezed == likeCount ? _self.likeCount : likeCount // ignore: cast_nullable_to_non_nullable
@@ -179,10 +182,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int userId,  String content,  String type,  DateTime createdAt,  DateTime expiresAt,  UserModel? user,  bool seen,  bool liked,  int? viewCount,  int? likeCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int userId,  String content,  String type,  DateTime createdAt,  DateTime expiresAt,  UserModel? user,  String? key,  String? iv,  bool seen,  bool liked,  int? viewCount,  int? likeCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StoryModel() when $default != null:
-return $default(_that.id,_that.userId,_that.content,_that.type,_that.createdAt,_that.expiresAt,_that.user,_that.seen,_that.liked,_that.viewCount,_that.likeCount);case _:
+return $default(_that.id,_that.userId,_that.content,_that.type,_that.createdAt,_that.expiresAt,_that.user,_that.key,_that.iv,_that.seen,_that.liked,_that.viewCount,_that.likeCount);case _:
   return orElse();
 
 }
@@ -200,10 +203,10 @@ return $default(_that.id,_that.userId,_that.content,_that.type,_that.createdAt,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int userId,  String content,  String type,  DateTime createdAt,  DateTime expiresAt,  UserModel? user,  bool seen,  bool liked,  int? viewCount,  int? likeCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int userId,  String content,  String type,  DateTime createdAt,  DateTime expiresAt,  UserModel? user,  String? key,  String? iv,  bool seen,  bool liked,  int? viewCount,  int? likeCount)  $default,) {final _that = this;
 switch (_that) {
 case _StoryModel():
-return $default(_that.id,_that.userId,_that.content,_that.type,_that.createdAt,_that.expiresAt,_that.user,_that.seen,_that.liked,_that.viewCount,_that.likeCount);case _:
+return $default(_that.id,_that.userId,_that.content,_that.type,_that.createdAt,_that.expiresAt,_that.user,_that.key,_that.iv,_that.seen,_that.liked,_that.viewCount,_that.likeCount);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -220,10 +223,10 @@ return $default(_that.id,_that.userId,_that.content,_that.type,_that.createdAt,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int userId,  String content,  String type,  DateTime createdAt,  DateTime expiresAt,  UserModel? user,  bool seen,  bool liked,  int? viewCount,  int? likeCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int userId,  String content,  String type,  DateTime createdAt,  DateTime expiresAt,  UserModel? user,  String? key,  String? iv,  bool seen,  bool liked,  int? viewCount,  int? likeCount)?  $default,) {final _that = this;
 switch (_that) {
 case _StoryModel() when $default != null:
-return $default(_that.id,_that.userId,_that.content,_that.type,_that.createdAt,_that.expiresAt,_that.user,_that.seen,_that.liked,_that.viewCount,_that.likeCount);case _:
+return $default(_that.id,_that.userId,_that.content,_that.type,_that.createdAt,_that.expiresAt,_that.user,_that.key,_that.iv,_that.seen,_that.liked,_that.viewCount,_that.likeCount);case _:
   return null;
 
 }
@@ -235,16 +238,19 @@ return $default(_that.id,_that.userId,_that.content,_that.type,_that.createdAt,_
 
 
 class _StoryModel implements StoryModel {
-  const _StoryModel({required this.id, required this.userId, required this.content, required this.type, required this.createdAt, required this.expiresAt, this.user, this.seen = false, this.liked = false, this.viewCount, this.likeCount});
+  const _StoryModel({required this.id, required this.userId, required this.content, required this.type, required this.createdAt, required this.expiresAt, this.user, this.key, this.iv, this.seen = false, this.liked = false, this.viewCount, this.likeCount});
   
 
 @override final  int id;
 @override final  int userId;
+/// URL of the sealed image; open it with [key] (my wrapped copy) and [iv].
 @override final  String content;
 @override final  String type;
 @override final  DateTime createdAt;
 @override final  DateTime expiresAt;
 @override final  UserModel? user;
+@override final  String? key;
+@override final  String? iv;
 @override@JsonKey() final  bool seen;
 @override@JsonKey() final  bool liked;
 /// Only on your own stories.
@@ -261,18 +267,18 @@ _$StoryModelCopyWith<_StoryModel> get copyWith => __$StoryModelCopyWithImpl<_Sto
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StoryModel&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.content, content) || other.content == content)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.user, user) || other.user == user)&&(identical(other.seen, seen) || other.seen == seen)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.viewCount, viewCount) || other.viewCount == viewCount)&&(identical(other.likeCount, likeCount) || other.likeCount == likeCount));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StoryModel&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.content, content) || other.content == content)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.user, user) || other.user == user)&&(identical(other.key, key) || other.key == key)&&(identical(other.iv, iv) || other.iv == iv)&&(identical(other.seen, seen) || other.seen == seen)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.viewCount, viewCount) || other.viewCount == viewCount)&&(identical(other.likeCount, likeCount) || other.likeCount == likeCount));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,userId,content,type,createdAt,expiresAt,user,seen,liked,viewCount,likeCount);
+    return Object.hash(runtimeType,id,userId,content,type,createdAt,expiresAt,user,key,iv,seen,liked,viewCount,likeCount);
 }
 
 @override
 String toString() {
-    return 'StoryModel(id: $id, userId: $userId, content: $content, type: $type, createdAt: $createdAt, expiresAt: $expiresAt, user: $user, seen: $seen, liked: $liked, viewCount: $viewCount, likeCount: $likeCount)';
+    return 'StoryModel(id: $id, userId: $userId, content: $content, type: $type, createdAt: $createdAt, expiresAt: $expiresAt, user: $user, key: $key, iv: $iv, seen: $seen, liked: $liked, viewCount: $viewCount, likeCount: $likeCount)';
 }
 
 
@@ -283,7 +289,7 @@ abstract mixin class _$StoryModelCopyWith<$Res> implements $StoryModelCopyWith<$
   factory _$StoryModelCopyWith(_StoryModel value, $Res Function(_StoryModel) _then) = __$StoryModelCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int userId, String content, String type, DateTime createdAt, DateTime expiresAt, UserModel? user, bool seen, bool liked, int? viewCount, int? likeCount
+ int id, int userId, String content, String type, DateTime createdAt, DateTime expiresAt, UserModel? user, String? key, String? iv, bool seen, bool liked, int? viewCount, int? likeCount
 });
 
 
@@ -300,7 +306,7 @@ class __$StoryModelCopyWithImpl<$Res>
 
 /// Create a copy of StoryModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? content = null,Object? type = null,Object? createdAt = null,Object? expiresAt = null,Object? user = freezed,Object? seen = null,Object? liked = null,Object? viewCount = freezed,Object? likeCount = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? content = null,Object? type = null,Object? createdAt = null,Object? expiresAt = null,Object? user = freezed,Object? key = freezed,Object? iv = freezed,Object? seen = null,Object? liked = null,Object? viewCount = freezed,Object? likeCount = freezed,}) {
   return _then(_StoryModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -309,7 +315,9 @@ as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,expiresAt: null == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
 as DateTime,user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
-as UserModel?,seen: null == seen ? _self.seen : seen // ignore: cast_nullable_to_non_nullable
+as UserModel?,key: freezed == key ? _self.key : key // ignore: cast_nullable_to_non_nullable
+as String?,iv: freezed == iv ? _self.iv : iv // ignore: cast_nullable_to_non_nullable
+as String?,seen: null == seen ? _self.seen : seen // ignore: cast_nullable_to_non_nullable
 as bool,liked: null == liked ? _self.liked : liked // ignore: cast_nullable_to_non_nullable
 as bool,viewCount: freezed == viewCount ? _self.viewCount : viewCount // ignore: cast_nullable_to_non_nullable
 as int?,likeCount: freezed == likeCount ? _self.likeCount : likeCount // ignore: cast_nullable_to_non_nullable

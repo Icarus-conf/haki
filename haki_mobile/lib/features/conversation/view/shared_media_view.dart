@@ -8,6 +8,7 @@ import '../../../models/message_model.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/chat/encrypted_image.dart';
 import '../../../widgets/loading_indicator.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 class SharedMediaView extends StatefulWidget {
   final int recipientId;
@@ -61,7 +62,7 @@ class _SharedMediaViewState extends State<SharedMediaView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.photo_library_outlined, size: 64, color: const Color(0xFF8E8EA6)),
+                  Icon(HakiIcons.images, size: 64, color: const Color(0xFF8E8EA6)),
                   const SizedBox(height: 16),
                   Text(
                     'No shared media',
@@ -118,7 +119,7 @@ class _MediaThumbnail extends StatelessWidget {
 
   Widget _buildThumbnail(BuildContext context) {
     if (message.attachmentUrl == null) {
-      return const Center(child: Icon(Icons.broken_image));
+      return const Center(child: Icon(HakiIcons.imageBroken));
     }
 
     final isRemote =
@@ -139,7 +140,7 @@ class _MediaThumbnail extends StatelessWidget {
               : '${ApiService.baseUrl}${message.attachmentUrl}',
           fit: BoxFit.cover,
           placeholder: (context, url) => const Center(child: LoadingIndicator(size: 20)),
-          errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
+          errorWidget: (context, url, error) => const Center(child: Icon(HakiIcons.warningCircleFill)),
         );
       }
     } else {
@@ -147,7 +148,7 @@ class _MediaThumbnail extends StatelessWidget {
       if (file.existsSync()) {
         return Image.file(file, fit: BoxFit.cover);
       } else {
-        return const Center(child: Icon(Icons.broken_image, color: Colors.grey));
+        return const Center(child: Icon(HakiIcons.imageBroken, color: Colors.grey));
       }
     }
   }
@@ -175,7 +176,7 @@ class _FullScreenMedia extends StatelessWidget {
 
   Widget _buildFullImage(BuildContext context) {
     if (message.attachmentUrl == null) {
-      return const Center(child: Icon(Icons.broken_image, color: Colors.white, size: 64));
+      return const Center(child: Icon(HakiIcons.imageBroken, color: Colors.white, size: 64));
     }
 
     final isRemote =
@@ -197,7 +198,7 @@ class _FullScreenMedia extends StatelessWidget {
           fit: BoxFit.contain,
           placeholder: (context, url) => const Center(child: LoadingIndicator(size: 40)),
           errorWidget: (context, url, error) =>
-              const Center(child: Icon(Icons.error, color: Colors.white, size: 64)),
+              const Center(child: Icon(HakiIcons.warningCircleFill, color: Colors.white, size: 64)),
         );
       }
     } else {
@@ -205,7 +206,7 @@ class _FullScreenMedia extends StatelessWidget {
       if (file.existsSync()) {
         return Image.file(file, fit: BoxFit.contain);
       } else {
-        return const Center(child: Icon(Icons.broken_image, color: Colors.white, size: 64));
+        return const Center(child: Icon(HakiIcons.imageBroken, color: Colors.white, size: 64));
       }
     }
   }

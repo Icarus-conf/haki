@@ -7,6 +7,7 @@ import '../../../core/widgets/glass.dart';
 import '../../../models/group_model.dart';
 import '../../../models/user_model.dart';
 import '../view_model/group_call_cubit.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// A group call: one tile per person (video, or their initials), mute / camera / speaker / leave.
 class GroupCallView extends StatefulWidget {
@@ -66,7 +67,7 @@ class _GroupCallViewState extends State<GroupCallView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.lock_rounded, size: 14, color: HakiColors.lime),
+                          const Icon(HakiIcons.lockFill, size: 14, color: HakiColors.lime),
                           const SizedBox(width: 6),
                           Text(
                             others.isEmpty ? 'Waiting for others to join…' : '${others.length + 1} in the call · end-to-end encrypted',
@@ -89,26 +90,26 @@ class _GroupCallViewState extends State<GroupCallView> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _Control(
-                            icon: s.muted ? Icons.mic_off_rounded : Icons.mic_rounded,
+                            icon: s.muted ? HakiIcons.microphoneSlash : HakiIcons.microphone,
                             label: s.muted ? 'Unmute' : 'Mute',
                             on: s.muted,
                             onTap: cubit.toggleMute,
                           ),
                           if (s.video)
                             _Control(
-                              icon: s.cameraOff ? Icons.videocam_off_rounded : Icons.videocam_rounded,
+                              icon: s.cameraOff ? HakiIcons.videoCameraSlash : HakiIcons.videoCamera,
                               label: s.cameraOff ? 'Camera on' : 'Camera off',
                               on: s.cameraOff,
                               onTap: cubit.toggleCamera,
                             ),
                           _Control(
-                            icon: s.speakerOn ? Icons.volume_up_rounded : Icons.hearing_rounded,
+                            icon: s.speakerOn ? HakiIcons.speakerHigh : HakiIcons.ear,
                             label: s.speakerOn ? 'Speaker' : 'Earpiece',
                             on: s.speakerOn,
                             onTap: cubit.toggleSpeaker,
                           ),
                           _Control(
-                            icon: Icons.call_end_rounded,
+                            icon: HakiIcons.phoneDisconnectFill,
                             label: 'Leave',
                             danger: true,
                             onTap: cubit.leave,
@@ -201,7 +202,7 @@ class _TileState extends State<_Tile> {
                   ),
                   if (widget.muted) ...[
                     const SizedBox(width: 6),
-                    const Icon(Icons.mic_off_rounded, size: 18, color: HakiColors.dangerText),
+                    const Icon(HakiIcons.microphoneSlash, size: 18, color: HakiColors.dangerText),
                   ],
                 ],
               ),

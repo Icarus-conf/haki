@@ -7,6 +7,8 @@ import '../../../core/utils/platform.dart';
 import '../../../core/widgets/glass.dart';
 import '../../../services/message_sender.dart';
 import '../../conversation/view/conversation_view.dart';
+import '../../feed/view/compose_post_view.dart';
+import '../../feed/view/feed_view.dart';
 import '../../friends/view_model/friends_cubit.dart';
 import '../../friends/view_model/friends_state.dart';
 import '../../profile/view/profile_view.dart';
@@ -14,6 +16,7 @@ import '../../profile/view/security_views.dart';
 import 'add_friend_sheet.dart';
 import 'chats_tab.dart';
 import 'requests_tab.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// Phone: tabs with a floating glass nav, chats open full screen.
 /// Wide (tablet, computer, browser): a side rail, the list, and the open chat beside it.
@@ -68,20 +71,22 @@ class _ResponsiveHomeState extends State<ResponsiveHome> {
         body: Row(
           children: [
             _Rail(tab: _tab, onTab: (i) => setState(() => _tab = i)),
-            if (_tab == 2)
+            if (_tab == 3)
               // You: one centered column, no list beside it
               Expanded(
                 child: Center(
                   child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 680), child: const ProfileView()),
                 ),
               )
+            else if (_tab == 1)
+              const Expanded(child: FeedTab())
             else ...[
               SizedBox(
                 width: listWidth,
                 child: IndexedStack(
-                  index: _tab,
+                  index: _tab == 2 ? 1 : 0,
                   children: [
-                    ChatsTab(onOpenChat: _openChat, onOpenProfile: () => setState(() => _tab = 2)),
+                    ChatsTab(onOpenChat: _openChat, onOpenProfile: () => setState(() => _tab = 3)),
                     const RequestsTab(),
                   ],
                 ),
@@ -108,9 +113,10 @@ class _Rail extends StatelessWidget {
       selector: (s) => (s.totalUnread, s.requests.length),
       builder: (context, counts) {
         final items = [
-          (Icons.chat_bubble_rounded, Icons.chat_bubble_outline_rounded, 'Chats', counts.$1),
-          (Icons.people_alt_rounded, Icons.people_alt_outlined, 'Requests', counts.$2),
-          (Icons.person_rounded, Icons.person_outline_rounded, 'You', 0),
+          (HakiIcons.chatCircleFill, HakiIcons.chatCircle, 'Chats', counts.$1),
+          (HakiIcons.squaresFourFill, HakiIcons.squaresFour, 'Feed', 0),
+          (HakiIcons.usersFill, HakiIcons.users, 'Requests', counts.$2),
+          (HakiIcons.userFill, HakiIcons.user, 'You', 0),
         ];
         return Container(
           width: 84,
@@ -192,13 +198,21 @@ class _Rail extends StatelessWidget {
                     height: 52,
                     child: FloatingActionButton(
                       heroTag: 'add_friend_rail',
-                      tooltip: 'Add a friend',
-                      onPressed: () => AddFriendSheet.show(context),
+                      // On Feed the main action is posting; everywhere else it's adding a friend
+                      tooltip: tab == 1 ? 'New post' : 'Add a friend',
+                      onPressed: () => tab == 1 ? ComposePostView.open(context) : AddFriendSheet.show(context),
                       backgroundColor: HakiColors.lime,
                       foregroundColor: HakiColors.onLime,
                       shape: const CircleBorder(),
                       elevation: 0,
-                      child: const Icon(Icons.person_add_alt_1_rounded, size: 22),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
+                        child: Icon(
+                          tab == 1 ? HakiIcons.pencilSimple : HakiIcons.userPlus,
+                          key: ValueKey(tab == 1), size: 22,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -212,12 +226,12 @@ class _Rail extends StatelessWidget {
 }
 
 IconData get _deviceIcon => Device.macos
-    ? Icons.laptop_mac_rounded
+    ? HakiIcons.laptop
     : Device.windows || Device.linux
-    ? Icons.laptop_windows_rounded
+    ? HakiIcons.laptop
     : Device.web
-    ? Icons.language_rounded
-    : Icons.tablet_mac_rounded;
+    ? HakiIcons.globe
+    : HakiIcons.deviceTablet;
 
 /// The right side before a chat is picked: what this device is and that it's private.
 class _NoChatOpen extends StatelessWidget {
@@ -268,7 +282,7 @@ class _NoChatOpen extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.lock_rounded, size: 13, color: HakiColors.textMuted),
+                      const Icon(HakiIcons.lockFill, size: 13, color: HakiColors.textMuted),
                       const SizedBox(width: 6),
                       Text(
                         Device.pointer
@@ -304,7 +318,8 @@ class _Shell extends StatelessWidget {
           IndexedStack(
             index: tab,
             children: [
-              ChatsTab(onOpenChat: onOpenChat, onOpenProfile: () => onTab(2)),
+              ChatsTab(onOpenChat: onOpenChat, onOpenProfile: () => onTab(3)),
+              const FeedTab(),
               const RequestsTab(),
               const ProfileView(),
             ],
@@ -346,12 +361,20 @@ class _Shell extends StatelessWidget {
                     height: 62,
                     child: FloatingActionButton(
                       heroTag: 'add_friend',
-                      tooltip: 'Add a friend',
-                      onPressed: () => AddFriendSheet.show(context),
+                      // On Feed the main action is posting; everywhere else it's adding a friend
+                      tooltip: tab == 1 ? 'New post' : 'Add a friend',
+                      onPressed: () => tab == 1 ? ComposePostView.open(context) : AddFriendSheet.show(context),
                       backgroundColor: HakiColors.lime,
                       foregroundColor: HakiColors.onLime,
                       shape: const CircleBorder(),
-                      child: const Icon(Icons.person_add_alt_1_rounded),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
+                        child: Icon(
+                          tab == 1 ? HakiIcons.pencilSimple : HakiIcons.userPlus,
+                          key: ValueKey(tab == 1),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -375,9 +398,10 @@ class _NavBar extends StatelessWidget {
       selector: (s) => (s.totalUnread, s.requests.length),
       builder: (context, counts) {
         final items = [
-          (Icons.chat_bubble_rounded, Icons.chat_bubble_outline_rounded, 'Chats', counts.$1),
-          (Icons.people_alt_rounded, Icons.people_alt_outlined, 'Requests', counts.$2),
-          (Icons.person_rounded, Icons.person_outline_rounded, 'You', 0),
+          (HakiIcons.chatCircleFill, HakiIcons.chatCircle, 'Chats', counts.$1),
+          (HakiIcons.squaresFourFill, HakiIcons.squaresFour, 'Feed', 0),
+          (HakiIcons.usersFill, HakiIcons.users, 'Requests', counts.$2),
+          (HakiIcons.userFill, HakiIcons.user, 'You', 0),
         ];
         return Glass(
           radius: 31,

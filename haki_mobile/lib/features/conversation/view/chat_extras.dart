@@ -11,6 +11,7 @@ import '../../../models/user_model.dart';
 import '../../settings/view_model/settings_cubit.dart';
 import '../../../widgets/voice_player.dart';
 import '../view_model/conversation_cubit.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// Disappearing-messages timer for a chat. Returns the chosen seconds, or null if dismissed.
 abstract final class DisappearingSheet {
@@ -37,7 +38,7 @@ abstract final class DisappearingSheet {
           for (final s in options)
             ListTile(
               leading: Icon(
-                s == current ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                s == current ? HakiIcons.radioButtonFill : HakiIcons.circle,
                 color: s == current ? HakiColors.lime : null,
               ),
               title: Text(s == 0 ? 'Off' : ConversationCubit.disappearLabel(s)),
@@ -129,7 +130,7 @@ class _ReportFormState extends State<_ReportForm> {
               const SizedBox(height: 8),
               LimeButton(
                 label: 'Send report',
-                icon: Icons.flag_rounded,
+                icon: HakiIcons.flagFill,
                 onPressed: _reason == null
                     ? null
                     : () => Navigator.pop(context, (_reason!, _note.text.trim().isEmpty ? null : _note.text.trim())),
@@ -209,7 +210,7 @@ abstract final class ViewOnceViewer {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             title: const Text('View once'),
-            leading: IconButton(icon: const Icon(Icons.close_rounded), tooltip: 'Close', onPressed: () => Navigator.of(context).pop()),
+            leading: IconButton(icon: const Icon(HakiIcons.x), tooltip: 'Close', onPressed: () => Navigator.of(context).pop()),
           ),
           body: SafeArea(
             child: Column(
@@ -290,7 +291,7 @@ class _FileCardState extends State<FileCard> {
               ),
               child: _busy || m.isSending
                   ? const Padding(padding: EdgeInsets.all(13), child: CircularProgressIndicator(strokeWidth: 2))
-                  : Icon(video ? Icons.play_arrow_rounded : Icons.description_rounded, color: video ? Colors.white : HakiColors.lime),
+                  : Icon(video ? HakiIcons.playFill : HakiIcons.fileText, color: video ? Colors.white : HakiColors.lime),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -373,7 +374,7 @@ class _VideoPlayerViewState extends State<VideoPlayerView> {
                   children: [
                     IconButton(
                       tooltip: v.isPlaying ? 'Pause' : 'Play',
-                      icon: Icon(v.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, size: 30),
+                      icon: Icon(v.isPlaying ? HakiIcons.pauseFill : HakiIcons.playFill, size: 30),
                       onPressed: () => v.isPlaying ? _c.pause() : _c.play(),
                     ),
                     Expanded(
@@ -444,7 +445,7 @@ class _NoteSheetState extends State<NoteSheet> {
                 const SizedBox(height: 14),
                 Row(
                   children: [
-                    const Icon(Icons.cake_rounded, size: 18, color: HakiColors.lime),
+                    const Icon(HakiIcons.cakeFill, size: 18, color: HakiColors.lime),
                     const SizedBox(width: 8),
                     Text(
                       'Birthday ${int.parse(b.substring(3))} ${_months[int.parse(b.substring(0, 2)) - 1]}'
@@ -465,7 +466,7 @@ class _NoteSheetState extends State<NoteSheet> {
               const SizedBox(height: 8),
               LimeButton(
                 label: 'Save note',
-                icon: Icons.check_rounded,
+                icon: HakiIcons.check,
                 onPressed: () async {
                   await context.read<SettingsCubit>().setNote(f.id, _text.text);
                   if (context.mounted) Navigator.pop(context);

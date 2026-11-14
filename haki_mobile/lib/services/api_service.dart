@@ -58,21 +58,11 @@ class ApiService {
     return data;
   }
 
-  Future<Map<String, dynamic>> register(
-    String username,
-    String email,
-    String password, {
-    String? inviteCode,
-  }) async {
+  Future<Map<String, dynamic>> register(String username, String email, String password, {String? inviteCode}) async {
     final res = await http.post(
       Uri.parse('$baseUrl/auth/register'),
       headers: _headers(null),
-      body: jsonEncode({
-        'username': username,
-        'email': email,
-        'password': password,
-        'inviteCode': ?inviteCode,
-      }),
+      body: jsonEncode({'username': username, 'email': email, 'password': password, 'inviteCode': ?inviteCode}),
     );
     return jsonDecode(res.body);
   }
@@ -96,12 +86,14 @@ class ApiService {
     return res.body.isEmpty ? null : jsonDecode(res.body);
   }
 
-  Future<List<Map<String, dynamic>>> sessions() async =>
-      [for (final s in await _send('GET', '/auth/sessions') as List) Map<String, dynamic>.from(s)];
+  Future<List<Map<String, dynamic>>> sessions() async => [
+    for (final s in await _send('GET', '/auth/sessions') as List) Map<String, dynamic>.from(s),
+  ];
   Future<void> removeSession(String id) => _send('DELETE', '/auth/sessions/$id');
 
   Future<bool> twoStepEnabled() async => (await _send('GET', '/auth/2fa'))['enabled'] == true;
-  Future<Map<String, dynamic>> twoStepSetup() async => Map<String, dynamic>.from(await _send('POST', '/auth/2fa/setup'));
+  Future<Map<String, dynamic>> twoStepSetup() async =>
+      Map<String, dynamic>.from(await _send('POST', '/auth/2fa/setup'));
   Future<void> twoStepEnable(String code) => _send('POST', '/auth/2fa/enable', {'code': code});
   Future<void> twoStepDisable(String code) => _send('POST', '/auth/2fa/disable', {'code': code});
 
@@ -141,10 +133,7 @@ class ApiService {
   // Users
   Future<UserModel?> getMe() async {
     final token = await getToken();
-    final res = await http.get(
-      Uri.parse('$baseUrl/users/me'),
-      headers: _headers(token),
-    );
+    final res = await http.get(Uri.parse('$baseUrl/users/me'), headers: _headers(token));
     if (res.statusCode == 200) {
       return UserModel.fromJson(jsonDecode(res.body));
     }
@@ -153,10 +142,7 @@ class ApiService {
 
   Future<List<UserModel>> getFriends() async {
     final token = await getToken();
-    final res = await http.get(
-      Uri.parse('$baseUrl/users/friends'),
-      headers: _headers(token),
-    );
+    final res = await http.get(Uri.parse('$baseUrl/users/friends'), headers: _headers(token));
     if (res.statusCode == 200) {
       final List data = jsonDecode(res.body);
       return data.map((u) => UserModel.fromJson(u)).toList();
@@ -219,24 +205,14 @@ class ApiService {
     dev.log('Fetching friend requests', name: 'ApiService');
     final token = await getToken();
     try {
-      final res = await http.get(
-        Uri.parse('$baseUrl/users/friends/requests'),
-        headers: _headers(token),
-      );
-      dev.log(
-        'Fetched ${jsonDecode(res.body).length} friend requests',
-        name: 'ApiService',
-      );
+      final res = await http.get(Uri.parse('$baseUrl/users/friends/requests'), headers: _headers(token));
+      dev.log('Fetched ${jsonDecode(res.body).length} friend requests', name: 'ApiService');
       if (res.statusCode == 200) {
         return jsonDecode(res.body);
       }
       return [];
     } catch (e) {
-      dev.log(
-        'Error fetching friend requests: $e',
-        name: 'ApiService',
-        error: e,
-      );
+      dev.log('Error fetching friend requests: $e', name: 'ApiService', error: e);
       rethrow;
     }
   }
@@ -249,17 +225,10 @@ class ApiService {
         Uri.parse('$baseUrl/users/friends/requests/$requestId/accept'),
         headers: _headers(token),
       );
-      dev.log(
-        'Accept request response: ${res.statusCode} - ${res.body}',
-        name: 'ApiService',
-      );
+      dev.log('Accept request response: ${res.statusCode} - ${res.body}', name: 'ApiService');
       return res.statusCode == 200 || res.statusCode == 201;
     } catch (e) {
-      dev.log(
-        'Error accepting friend request: $e',
-        name: 'ApiService',
-        error: e,
-      );
+      dev.log('Error accepting friend request: $e', name: 'ApiService', error: e);
       rethrow;
     }
   }
@@ -272,17 +241,10 @@ class ApiService {
         Uri.parse('$baseUrl/users/friends/requests/$requestId/decline'),
         headers: _headers(token),
       );
-      dev.log(
-        'Decline request response: ${res.statusCode} - ${res.body}',
-        name: 'ApiService',
-      );
+      dev.log('Decline request response: ${res.statusCode} - ${res.body}', name: 'ApiService');
       return res.statusCode == 200 || res.statusCode == 201;
     } catch (e) {
-      dev.log(
-        'Error declining friend request: $e',
-        name: 'ApiService',
-        error: e,
-      );
+      dev.log('Error declining friend request: $e', name: 'ApiService', error: e);
       rethrow;
     }
   }
@@ -320,10 +282,7 @@ class ApiService {
 
   Future<List<UserModel>> getBlockedUsers() async {
     final token = await getToken();
-    final res = await http.get(
-      Uri.parse('$baseUrl/users/blocked'),
-      headers: _headers(token),
-    );
+    final res = await http.get(Uri.parse('$baseUrl/users/blocked'), headers: _headers(token));
     if (res.statusCode == 200) {
       final List data = jsonDecode(res.body);
       return data.map((u) => UserModel.fromJson(u)).toList();
@@ -369,10 +328,7 @@ class ApiService {
 
   Future<String?> uploadAvatar(String filePath) async {
     final token = await getToken();
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('$baseUrl/users/avatar'),
-    );
+    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/users/avatar'));
     request.headers.addAll(_headers(token));
     request.files.add(await _filePart(filePath));
 
@@ -389,10 +345,7 @@ class ApiService {
 
   Future<String?> uploadBytes(Uint8List bytes, String name) async {
     final token = await getToken();
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('$baseUrl/users/upload'),
-    );
+    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/users/upload'));
     request.headers.addAll(_headers(token));
     request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: name));
 
@@ -404,28 +357,43 @@ class ApiService {
     return null;
   }
 
+  // ===== Feed (bodies, keys and comments arrive sealed; FeedCubit opens them) =====
+  Future<List<Map<String, dynamic>>> feed({int? before, int? user}) async {
+    final q = [if (before != null) 'before=$before', if (user != null) 'user=$user'].join('&');
+    return [for (final p in await _send('GET', '/feed${q.isEmpty ? '' : '?$q'}') as List) Map<String, dynamic>.from(p)];
+  }
+
+  Future<Map<String, dynamic>> feedPost(int id) async => Map<String, dynamic>.from(await _send('GET', '/feed/$id'));
+  Future<Map<String, dynamic>> createPost(Map<String, dynamic> body) async =>
+      Map<String, dynamic>.from(await _send('POST', '/feed', body));
+  Future<void> deletePost(int id) => _send('DELETE', '/feed/$id');
+  Future<void> reactToPost(int id, String? emoji) => _send('POST', '/feed/$id/react', {'emoji': emoji});
+  Future<List<Map<String, dynamic>>> postComments(int id) async => [
+    for (final c in await _send('GET', '/feed/$id/comments') as List) Map<String, dynamic>.from(c),
+  ];
+  Future<Map<String, dynamic>> addPostComment(int id, String body, {int? parentId}) async =>
+      Map<String, dynamic>.from(await _send('POST', '/feed/$id/comments', {'body': body, 'parentId': ?parentId}));
+  Future<void> deletePostComment(int id, int commentId) => _send('DELETE', '/feed/$id/comments/$commentId');
+
   // Stories
   Future<List<dynamic>> getActiveStories() async {
     final token = await getToken();
-    final res = await http.get(
-      Uri.parse('$baseUrl/stories/active'),
-      headers: _headers(token),
-    );
+    final res = await http.get(Uri.parse('$baseUrl/stories/active'), headers: _headers(token));
     if (res.statusCode == 200) {
       return jsonDecode(res.body);
     }
     return [];
   }
 
-  Future<Map<String, dynamic>?> uploadStory(
-    String filePath, {
-    String type = 'image',
-  }) async {
+  /// [sealed] is the image already sealed with the story key; [keys] wrap that key per reader (user id → key).
+  Future<Map<String, dynamic>?> uploadStory(Uint8List sealed, String iv, Map<String, String> keys) async {
     final token = await getToken();
     var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/stories'));
     request.headers.addAll(_headers(token));
-    request.fields['type'] = type;
-    request.files.add(await _filePart(filePath));
+    request.fields['type'] = 'image';
+    request.fields['iv'] = iv;
+    request.fields['keys'] = jsonEncode(keys);
+    request.files.add(http.MultipartFile.fromBytes('file', sealed, filename: 'story.enc'));
 
     var res = await request.send();
     if (res.statusCode == 201 || res.statusCode == 200) {
@@ -438,10 +406,7 @@ class ApiService {
   // Shared Media
   Future<List<MessageModel>> getSharedMedia(int recipientId) async {
     final token = await getToken();
-    final res = await http.get(
-      Uri.parse('$baseUrl/messages/shared-media/$recipientId'),
-      headers: _headers(token),
-    );
+    final res = await http.get(Uri.parse('$baseUrl/messages/shared-media/$recipientId'), headers: _headers(token));
     if (res.statusCode == 200) {
       final List data = jsonDecode(res.body);
       return data.map((m) => MessageModel.fromJson(m)).toList();
@@ -457,22 +422,27 @@ class ApiService {
   }
 
   /// Returns the group, or an error message from the server.
-  Future<(GroupModel?, String?)> createGroup(String name, List<int> memberIds) =>
-      _groupCall(() async => http.post(
-        Uri.parse('$baseUrl/groups'),
-        headers: _headers(await getToken()),
-        body: jsonEncode({'name': name, 'memberIds': memberIds}),
-      ));
+  Future<(GroupModel?, String?)> createGroup(String name, List<int> memberIds) => _groupCall(
+    () async => http.post(
+      Uri.parse('$baseUrl/groups'),
+      headers: _headers(await getToken()),
+      body: jsonEncode({'name': name, 'memberIds': memberIds}),
+    ),
+  );
 
-  Future<(GroupModel?, String?)> addGroupMembers(int groupId, List<int> memberIds) =>
-      _groupCall(() async => http.post(
-        Uri.parse('$baseUrl/groups/$groupId/members'),
-        headers: _headers(await getToken()),
-        body: jsonEncode({'memberIds': memberIds}),
-      ));
+  Future<(GroupModel?, String?)> addGroupMembers(int groupId, List<int> memberIds) => _groupCall(
+    () async => http.post(
+      Uri.parse('$baseUrl/groups/$groupId/members'),
+      headers: _headers(await getToken()),
+      body: jsonEncode({'memberIds': memberIds}),
+    ),
+  );
 
   Future<bool> leaveGroup(int groupId) async {
-    final res = await http.delete(Uri.parse('$baseUrl/groups/$groupId/members/me'), headers: _headers(await getToken()));
+    final res = await http.delete(
+      Uri.parse('$baseUrl/groups/$groupId/members/me'),
+      headers: _headers(await getToken()),
+    );
     return res.statusCode == 200;
   }
 

@@ -5,6 +5,7 @@ import '../../../core/theme/haki_theme.dart';
 import '../../../core/widgets/glass.dart';
 import '../../../core/widgets/qr_scanner_view.dart';
 import '../view_model/session_cubit.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// Shown when the account already has a key but this phone doesn't (new phone, reinstall).
 /// The 12 words recreate the same key, so this phone and the others all keep working.
@@ -57,7 +58,7 @@ class _UnlockViewState extends State<UnlockView> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 32, 20, 32),
               children: [
-                const Icon(Icons.lock_rounded, color: HakiColors.lime, size: 34),
+                const Icon(HakiIcons.lockFill, color: HakiColors.lime, size: 34),
                 const SizedBox(height: 16),
                 Text('Unlock your messages', style: HakiText.display(40)),
                 const SizedBox(height: 10),
@@ -78,7 +79,7 @@ class _UnlockViewState extends State<UnlockView> {
                     alignLabelWithHint: true,
                     suffixIcon: IconButton(
                       tooltip: 'Scan recovery QR',
-                      icon: const Icon(Icons.qr_code_scanner_rounded),
+                      icon: const Icon(HakiIcons.scan),
                       onPressed: () async {
                         final v = await QrScannerView.scan(context, title: 'Scan recovery QR');
                         if (v != null) _phrase.text = v;
@@ -87,7 +88,7 @@ class _UnlockViewState extends State<UnlockView> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                LimeButton(label: 'Unlock', icon: Icons.lock_open_rounded, busy: _busy, onPressed: _unlock),
+                LimeButton(label: 'Unlock', icon: HakiIcons.lockOpen, busy: _busy, onPressed: _unlock),
                 const SizedBox(height: 28),
                 const Text('Don’t have your words?', style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),

@@ -10,6 +10,7 @@ import '../../../core/widgets/glass.dart';
 import '../../../models/user_model.dart';
 import '../../friends/view_model/friends_cubit.dart';
 import '../view_model/call_cubit.dart';
+import 'package:chat_mobile/core/theme/haki_icons.dart';
 
 /// Voice or video call screen, for both outgoing ([outgoing] = true) and incoming calls.
 class CallView extends StatefulWidget {
@@ -137,7 +138,7 @@ class _CallViewState extends State<CallView> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.lock_rounded, size: 13),
+                              Icon(HakiIcons.lockFill, size: 13),
                               SizedBox(width: 6),
                               Text('End-to-end encrypted', style: TextStyle(fontSize: 12)),
                             ],
@@ -172,7 +173,7 @@ class _CallViewState extends State<CallView> {
                             children: [
                               _RoundAction(
                                 label: 'Decline',
-                                icon: Icons.call_end_rounded,
+                                icon: HakiIcons.phoneDisconnectFill,
                                 color: HakiColors.danger,
                                 onPressed: () {
                                   cubit.decline();
@@ -181,7 +182,7 @@ class _CallViewState extends State<CallView> {
                               ),
                               _RoundAction(
                                 label: 'Accept',
-                                icon: call.video ? Icons.videocam_rounded : Icons.call_rounded,
+                                icon: call.video ? HakiIcons.videoCamera : HakiIcons.phoneFill,
                                 color: HakiColors.lime,
                                 iconColor: HakiColors.onLime,
                                 onPressed: cubit.accept,
@@ -198,7 +199,7 @@ class _CallViewState extends State<CallView> {
                                   child: Row(
                                     children: [
                                       _Toggle(
-                                        icon: call.muted ? Icons.mic_off_rounded : Icons.mic_rounded,
+                                        icon: call.muted ? HakiIcons.microphoneSlash : HakiIcons.microphone,
                                         label: call.muted ? 'Unmute' : 'Mute',
                                         on: call.muted,
                                         onPressed: cubit.toggleMute,
@@ -206,21 +207,21 @@ class _CallViewState extends State<CallView> {
                                       const SizedBox(width: 6),
                                       if (call.video && _localVideo) ...[
                                         _Toggle(
-                                          icon: call.cameraOff ? Icons.videocam_off_rounded : Icons.videocam_rounded,
+                                          icon: call.cameraOff ? HakiIcons.videoCameraSlash : HakiIcons.videoCamera,
                                           label: call.cameraOff ? 'Camera on' : 'Camera',
                                           on: call.cameraOff,
                                           onPressed: cubit.toggleCamera,
                                         ),
                                         const SizedBox(width: 6),
                                         _Toggle(
-                                          icon: Icons.cameraswitch_rounded,
+                                          icon: HakiIcons.cameraRotate,
                                           label: 'Flip',
                                           on: false,
                                           onPressed: cubit.switchCamera,
                                         ),
                                       ] else
                                         _Toggle(
-                                          icon: Icons.volume_up_rounded,
+                                          icon: HakiIcons.speakerHigh,
                                           label: call.speakerOn ? 'Speaker on' : 'Speaker',
                                           on: call.speakerOn,
                                           onPressed: cubit.toggleSpeaker,
@@ -232,7 +233,7 @@ class _CallViewState extends State<CallView> {
                               const SizedBox(width: 12),
                               _RoundAction(
                                 label: 'End call',
-                                icon: Icons.call_end_rounded,
+                                icon: HakiIcons.phoneDisconnectFill,
                                 color: HakiColors.danger,
                                 showLabel: false,
                                 onPressed: () {
