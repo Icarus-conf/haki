@@ -118,3 +118,9 @@ For development environments, use the following pre-configured credentials:
   <img src="https://img.shields.io/badge/Made%20with-React-61DAFB?style=flat-square&logo=react" alt="Made with React" />
   <img src="https://img.shields.io/badge/Styled%20with-Tailwind-38B2AC?style=flat-square&logo=tailwind-css" alt="Styled with Tailwind" />
 </div>
+
+## Local test admin
+
+A local-only admin for trying the dashboard against the Docker stack (`http://localhost:3001`):
+username `dashadmin`, password `dashpass123`. Create it again on a fresh database by registering
+that user, then running `update users set role='admin' where username='dashadmin'` in `haki_db`.
