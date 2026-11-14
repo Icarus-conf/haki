@@ -19,12 +19,15 @@ import { UsersModule } from './users/users.module';
 
 import { ChatModule } from './chat.module';
 import { StoryView } from './stories/entities/story-view.entity';
+import { StoryKey } from './stories/entities/story-key.entity';
 import { Story } from './stories/entities/story.entity';
 import { StoriesModule } from './stories/stories.module';
 import { Group } from './groups/entities/group.entity';
 import { GroupsModule } from './groups/groups.module';
 import { PushDevice } from './push/push-device.entity';
 import { PushModule } from './push/push.module';
+import { Post, PostComment, PostKey, PostReaction } from './feed/feed.entities';
+import { FeedModule } from './feed/feed.module';
 
 @Module({
   imports: [
@@ -42,7 +45,7 @@ import { PushModule } from './push/push.module';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Message, FriendRequest, Friendship, Story, Reaction, BlockedUser, Group, StoryView, PushDevice, Report, AuditLog, Setting, InviteCode, Session, GroupRead],
+        entities: [User, Message, FriendRequest, Friendship, Story, Reaction, BlockedUser, Group, StoryView, StoryKey, PushDevice, Report, AuditLog, Setting, InviteCode, Session, GroupRead, Post, PostKey, PostComment, PostReaction],
         synchronize: true, // Only for development
       }),
       inject: [ConfigService],
@@ -55,6 +58,7 @@ import { PushModule } from './push/push.module';
     AdminModule,
     GroupsModule,
     PushModule,
+    FeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],

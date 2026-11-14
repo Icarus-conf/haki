@@ -155,17 +155,64 @@ const restoreSignup = () => psql(`insert into settings (key, value) values ('sig
   sa.emit('call_end', { to: B.id });
   ok(!!(await ended), 'call_end reaches the other side');
 
-  // --- Stories: post, live notify to friends, friends-only visibility ---
+  // --- Stories: sealed on the device, keys only for friends, live notify, friends-only visibility ---
+  const plainPng = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex');
+  const storyKey = require('crypto').randomBytes(32);
+  const storyIv = require('crypto').randomBytes(12);
+  const gcm = require('crypto').createCipheriv('aes-256-gcm', storyKey, storyIv);
+  const sealedPng = Buffer.concat([gcm.update(plainPng), gcm.final(), gcm.getAuthTag()]);
+  const postStory = async (bytes, keys, iv = storyIv.toString('base64')) => {
+    const f = new FormData();
+    f.append('file', new Blob([bytes]), 'story.enc');
+    if (iv) f.append('iv', iv);
+    if (keys) f.append('keys', JSON.stringify(keys));
+    const r = await fetch(API + '/stories', { method: 'POST', headers: { Authorization: `Bearer ${A.token}` }, body: f });
+    return { status: r.status, data: await r.json().catch(() => null) };
+  };
+  ok((await postStory(plainPng, { [A.id]: 'kA', [B.id]: 'kB' })).status === 400, 'stories: a plain image is refused');
+  ok((await postStory(sealedPng, null)).status === 400, 'stories: upload without keys is refused');
+  ok((await postStory(sealedPng, { [A.id]: 'kA', [C.id]: 'kC' })).status === 400, 'stories: cannot hand a story key to a stranger');
+  ok((await postStory(sealedPng, { [B.id]: 'kB' })).status === 400, 'stories: owner must keep a key');
   const storyEvt = next(sb, 'story_posted');
-  const form = new FormData();
-  form.append('file', new Blob([Buffer.from('89504e470d0a1a0a', 'hex')], { type: 'image/png' }), 'story.png');
-  const posted = await fetch(API + '/stories', { method: 'POST', headers: { Authorization: `Bearer ${A.token}` }, body: form });
-  ok(posted.status === 201, 'story upload accepted', `status ${posted.status}`);
+  const posted = await postStory(sealedPng, { [A.id]: 'kA', [B.id]: 'kB' });
+  ok(posted.status === 201 && posted.data.key === 'kA', 'story upload accepted, owner gets own key', `status ${posted.status}`);
   ok((await storyEvt)?.userId === A.id, 'friend notified live of new story');
+  const storedStory = Buffer.from(await (await fetch(API + posted.data.content)).arrayBuffer());
+  ok(storedStory.equals(sealedPng) && !storedStory.includes(plainPng.subarray(0, 8)), 'stories: stored file is sealed, not the plain image');
   const bStories = (await http('GET', '/stories/active', B.token)).data;
-  ok(bStories.some((st) => st.userId === A.id), 'friend sees the story');
+  const bStory = bStories.find((st) => st.id === posted.data.id);
+  ok(bStory?.key === 'kB' && !JSON.stringify(bStories).includes('"kA"'), 'friend sees the story with only their own key');
   const cStories = (await http('GET', '/stories/active', C.token)).data;
-  ok(!cStories.some((st) => st.userId === A.id), 'non-friend does not see the story');
+  ok(!cStories.some((st) => st.userId === A.id) && !JSON.stringify(cStories).includes('"kB"'), 'stranger gets neither the story nor a key');
+  ok((await http('POST', `/stories/${posted.data.id}/view`, C.token)).status === 404, 'stranger cannot touch the story');
+
+  // --- Feed: sealed posts, keys only for friends, comments, reactions ---
+  const sealedBody = JSON.stringify({ data: 'CIPHER', iv: 'IV' });
+  ok((await http('POST', '/feed', A.token, { body: sealedBody, keys: { [A.id]: 'kA', [C.id]: 'kC' } })).status === 400, 'feed: cannot hand a post key to a stranger');
+  ok((await http('POST', '/feed', A.token, { body: sealedBody, keys: { [B.id]: 'kB' } })).status === 400, 'feed: author must keep a key');
+  ok((await http('POST', '/feed', A.token, { body: sealedBody, media: ['/etc/passwd'], keys: { [A.id]: 'kA' } })).status === 400, 'feed: media must be uploaded files');
+  const postEvt = next(sb, 'post_created');
+  const post = (await http('POST', '/feed', A.token, { body: sealedBody, keys: { [A.id]: 'kA', [B.id]: 'kB' } })).data;
+  ok(post?.key === 'kA' && post.body === sealedBody, 'feed: post stored sealed, author gets own wrapped key');
+  ok((await postEvt)?.postId === post.id, 'feed: friend notified live of new post');
+  const bFeed = (await http('GET', '/feed', B.token)).data;
+  ok(bFeed[0]?.id === post.id && bFeed[0].key === 'kB' && !JSON.stringify(bFeed).includes('kA'), 'feed: reader gets only their own key');
+  ok(!(await http('GET', '/feed', C.token)).data.some((p) => p.id === post.id), 'feed: non-friend does not see the post');
+  ok((await http('GET', `/feed/${post.id}/comments`, C.token)).status === 404, 'feed: non-reader cannot list comments');
+  const cmEvt = next(sa, 'post_comment');
+  const cm = (await http('POST', `/feed/${post.id}/comments`, B.token, { body: sealedBody })).data;
+  ok((await cmEvt)?.notify?.includes(A.id), 'feed: author notified live of a comment');
+  const rp = (await http('POST', `/feed/${post.id}/comments`, A.token, { body: sealedBody, parentId: cm.id })).data;
+  const rp2 = (await http('POST', `/feed/${post.id}/comments`, B.token, { body: sealedBody, parentId: rp.id })).data;
+  ok(rp.parentId === cm.id && rp2.parentId === cm.id, 'feed: replies stay one level deep');
+  await http('POST', `/feed/${post.id}/react`, B.token, { emoji: '❤️' });
+  await http('POST', `/feed/${post.id}/react`, A.token, { emoji: '🔥' });
+  await http('POST', `/feed/${post.id}/react`, B.token, { emoji: '🔥' });
+  const one = (await http('GET', `/feed/${post.id}`, B.token)).data;
+  ok(one.reactions['🔥'] === 2 && !one.reactions['❤️'] && one.myReaction === '🔥' && one.commentCount === 3, 'feed: one reaction each, counts add up', JSON.stringify(one.reactions));
+  ok((await http('DELETE', `/feed/${post.id}/comments/${rp.id}`, B.token)).status === 403, 'feed: cannot delete someone else\'s comment');
+  ok((await http('DELETE', `/feed/${post.id}`, B.token)).status === 403, 'feed: only the author deletes a post');
+  ok((await http('DELETE', `/feed/${post.id}`, A.token)).status === 200 && (await http('GET', `/feed/${post.id}`, B.token)).status === 404, 'feed: deleted post is gone for readers');
 
   // --- Edit, delete for me, pin ---
   const own = msgs.at(-2);
@@ -267,9 +314,7 @@ const restoreSignup = () => psql(`insert into settings (key, value) values ('sig
   ok(late && !late.scheduledAt && Math.abs(Date.parse(late.timestamp) - Date.now()) < 10000, 'delivered at its time');
 
   // --- Story views and loves ---
-  const sf = new FormData();
-  sf.append('file', new Blob([Buffer.from('89504e470d0a1a0a', 'hex')], { type: 'image/png' }), 's.png');
-  const st = await (await fetch(API + '/stories', { method: 'POST', headers: { Authorization: `Bearer ${A.token}` }, body: sf })).json();
+  const st = (await postStory(sealedPng, { [A.id]: 'kA', [B.id]: 'kB' })).data;
   ok((await http('POST', `/stories/${st.id}/view`, B.token)).status === 201, 'friend marks story seen');
   const loved = next(sa, 'story_liked');
   await http('POST', `/stories/${st.id}/like`, B.token, { liked: true });
@@ -555,6 +600,8 @@ const restoreSignup = () => psql(`insert into settings (key, value) values ('sig
   ok(dev.totals?.active > 0 && dev.totals.online >= 1 && Array.isArray(dev.platforms) && dev.daily?.length === 14, 'device insights: totals, platforms, 14 days');
   ok(dev.recent?.some((r) => r.username === A.username) && dev.platforms.every((p) => !('ids' in p)), 'device insights list recent devices without raw ids per platform');
   ok((await http('GET', '/admin/devices', B.token)).status === 403, 'non-admin cannot read device insights');
+  const fs1 = (await http('GET', '/admin/feed', admin)).data;
+  ok(fs1.totals && 'posts' in fs1.totals && fs1.daily?.length === 14 && !JSON.stringify(fs1).includes('CIPHER'), 'feed insights: counts and 14 days, no content');
 
   // --- Spam guard + signals (last: it throttles B) ---
   const tooFast = next(sb, 'message_error', (e) => /too fast/.test(e.error), 4000);

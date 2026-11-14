@@ -179,6 +179,31 @@ export class AdminController {
         };
     }
 
+    /** Feed activity. Posts and comments are sealed, so this is counts only. */
+    @Get('feed')
+    async feedStats() {
+        const q = (sql: string) => this.db.query(sql);
+        const [[totals], daily, top] = await Promise.all([
+            q(`select (select count(*) from posts)::int posts,
+                      (select count(*) from posts where "createdAt" >= now() - interval '7 days')::int "posts7d",
+                      (select count(*) from post_comments)::int comments,
+                      (select count(*) from post_reactions)::int reactions,
+                      (select count(distinct "authorId") from posts where "createdAt" >= now() - interval '7 days')::int "posters7d",
+                      (select coalesce(sum(json_array_length(media::json)), 0) from posts)::int media,
+                      (select round(avg(n), 1) from (select count(*) n from post_keys group by "postId") t)::float "avgReaders"`),
+            q(`select to_char(d, 'YYYY-MM-DD') as day,
+                      (select count(*) from posts p where p."createdAt"::date = d::date)::int posts,
+                      (select count(*) from post_comments c where c."createdAt"::date = d::date)::int comments,
+                      (select count(*) from post_reactions r where r."createdAt"::date = d::date)::int reactions
+               from generate_series(current_date - 13, current_date, interval '1 day') d order by d`),
+            q(`select u.username, count(p.id)::int posts,
+                      (select count(*) from post_comments c join posts p2 on p2.id = c."postId" where p2."authorId" = u.id)::int comments
+               from posts p join users u on u.id = p."authorId"
+               where p."createdAt" >= now() - interval '30 days' group by u.id order by 2 desc limit 8`),
+        ]);
+        return { totals, daily, top };
+    }
+
     // ===== SPAM SIGNALS (metadata only: counts and timestamps, never content) =====
     @Get('signals')
     async signals() {

@@ -18,6 +18,10 @@ export class Story {
     @Column({ default: 'image' })
     type: string; // 'text' | 'image'
 
+    /** AES-GCM nonce of the sealed file at [content]; the server never has the key. */
+    @Column({ type: 'text', nullable: true })
+    iv: string | null;
+
     @CreateDateColumn()
     createdAt: Date;
 
