@@ -1,3 +1,5 @@
+import { Report } from './reports/report.entity';
+import { AuditLog, GroupRead, InviteCode, Session, Setting } from './platform/entities';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -16,8 +18,13 @@ import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 
 import { ChatModule } from './chat.module';
+import { StoryView } from './stories/entities/story-view.entity';
 import { Story } from './stories/entities/story.entity';
 import { StoriesModule } from './stories/stories.module';
+import { Group } from './groups/entities/group.entity';
+import { GroupsModule } from './groups/groups.module';
+import { PushDevice } from './push/push-device.entity';
+import { PushModule } from './push/push.module';
 
 @Module({
   imports: [
@@ -35,7 +42,7 @@ import { StoriesModule } from './stories/stories.module';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Message, FriendRequest, Friendship, Story, Reaction, BlockedUser],
+        entities: [User, Message, FriendRequest, Friendship, Story, Reaction, BlockedUser, Group, StoryView, PushDevice, Report, AuditLog, Setting, InviteCode, Session, GroupRead],
         synchronize: true, // Only for development
       }),
       inject: [ConfigService],
@@ -46,6 +53,8 @@ import { StoriesModule } from './stories/stories.module';
     ChatModule,
     StoriesModule,
     AdminModule,
+    GroupsModule,
+    PushModule,
   ],
   controllers: [AppController],
   providers: [AppService],

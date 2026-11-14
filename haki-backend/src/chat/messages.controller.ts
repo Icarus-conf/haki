@@ -1,14 +1,10 @@
-import { Controller, Get, Param, Query, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Request, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { LinkPreviewService } from './link-preview.service';
 import { MessagesService } from './messages.service';
 
 @Controller('messages')
 export class MessagesController {
-    constructor(
-        private readonly messagesService: MessagesService,
-        private readonly linkPreviewService: LinkPreviewService
-    ) { }
+    constructor(private readonly messagesService: MessagesService) { }
 
     @UseGuards(JwtAuthGuard)
     @Get('shared-media/:recipientId')
@@ -17,10 +13,7 @@ export class MessagesController {
         return this.messagesService.getSharedMedia(userId, parseInt(recipientId));
     }
 
-    @UseGuards(JwtAuthGuard)
-    @Get('link-preview')
-    async getLinkPreview(@Query('url') url: string) {
-        if (!url) return { error: 'URL is required' };
-        return this.linkPreviewService.getLinkPreview(url);
-    }
+    // Link previews are built on the sender's phone and sent inside the encrypted message.
+    // The old /messages/link-preview made this server fetch any URL a user gave it: it leaked
+    // links from private chats and let anyone probe internal hosts (SSRF). Removed on purpose.
 }

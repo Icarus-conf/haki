@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { Message } from './entities/message.entity';
 
 @Injectable()
@@ -18,11 +18,13 @@ export class MessagesService {
                     sender: { id: userId },
                     recipient: { id: recipientId },
                     attachmentType: In(['image']), // Only images for now, can add 'video' later
+                    scheduledAt: IsNull(),
                 },
                 {
                     sender: { id: recipientId },
                     recipient: { id: userId },
                     attachmentType: In(['image']),
+                    scheduledAt: IsNull(),
                 },
             ],
             relations: ['sender', 'recipient', 'reactions', 'reactions.user'],
@@ -45,7 +47,8 @@ export class MessagesService {
             attachmentType: m.attachmentType,
             timestamp: m.createdAt.toISOString(),
             recipientId: m.recipient?.id || null,
-            reactions: m.reactions || [],
+            reactions: (m.reactions || []).map(r => ({ id: r.id, emoji: r.emoji, userId: r.user?.id, username: r.user?.username })),
+            isRead: m.isRead,
             replyToMessageId: m.replyToMessageId,
             replyToSender: m.replyToSender,
             replyToMessage: m.replyToMessage,

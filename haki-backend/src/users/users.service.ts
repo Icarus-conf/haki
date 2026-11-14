@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { createHmac } from 'crypto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Message } from '../chat/entities/message.entity';
 import { BlockedUser } from './entities/blocked-user.entity';
 import { FriendRequest } from './entities/friend-request.entity';
@@ -24,6 +25,13 @@ export class UsersService {
 
     async findOne(username: string): Promise<User | null> {
         return this.usersRepository.findOne({ where: { username } });
+    }
+
+    async findForLogin(username: string): Promise<User | null> {
+        return this.usersRepository.createQueryBuilder('user')
+            .addSelect(['user.password', 'user.totpSecret', 'user.totpEnabled'])
+            .where('user.username = :username', { username })
+            .getOne();
     }
 
     async findByEmail(email: string): Promise<User | null> {
@@ -70,15 +78,20 @@ export class UsersService {
             // Get last message
             const lastMessage = await this.messageRepository.findOne({
                 where: [
-                    { sender: { id }, recipient: { id: friend.id } },
-                    { sender: { id: friend.id }, recipient: { id } }
+                    { sender: { id }, recipient: { id: friend.id }, scheduledAt: IsNull() },
+                    { sender: { id: friend.id }, recipient: { id }, scheduledAt: IsNull() }
                 ],
                 order: { createdAt: 'DESC' },
                 relations: ['sender']
             });
 
+            const unreadCount = await this.messageRepository.count({
+                where: { sender: { id: friend.id }, recipient: { id }, isRead: false, scheduledAt: IsNull() },
+            });
+
             return {
                 ...friend,
+                unreadCount,
                 lastMessage: lastMessage ? {
                     content: lastMessage.content,
                     timestamp: lastMessage.createdAt,
@@ -91,16 +104,61 @@ export class UsersService {
         return friendsWithChat;
     }
 
-    async sendFriendRequest(senderId: number, friendEmail: string): Promise<FriendRequest> {
-        const sender = await this.findOneById(senderId);
-        const recipient = await this.findByEmail(friendEmail);
+    // ===== USERNAMES =====
+    static readonly HANDLE = /^[a-z][a-z0-9_.]{2,23}$/;
 
-        if (!sender || !recipient) throw new Error('User or Friend not found');
-        if (sender.id === recipient.id) throw new Error('Cannot add yourself');
+    static normalizeHandle(raw: string) {
+        return (raw ?? '').trim().toLowerCase().replace(/^@/, '');
+    }
+
+    /** Keyed hash: a leaked database alone can't be turned back into usernames by guessing. */
+    // ponytail: pepper comes from HANDLE_PEPPER (falls back to JWT_SECRET); rotating it orphans every username
+    private handleHash(handle: string) {
+        const pepper = process.env.HANDLE_PEPPER || process.env.JWT_SECRET || 'haki';
+        return createHmac('sha256', pepper).update(UsersService.normalizeHandle(handle)).digest('hex');
+    }
+
+    async setHandle(userId: number, handle: string, sealed: string) {
+        const h = UsersService.normalizeHandle(handle);
+        if (!UsersService.HANDLE.test(h) || h.endsWith('.') || h.includes('..')) {
+            throw new BadRequestException('Use 3–24 letters, numbers, _ or . and start with a letter');
+        }
+        if (typeof sealed !== 'string' || !sealed || sealed.length > 4000) throw new BadRequestException('Missing sealed copy');
+        const hash = this.handleHash(h);
+        const owner = await this.usersRepository.findOne({ where: { handleHash: hash }, select: ['id'] });
+        if (owner && owner.id !== userId) throw new ConflictException('That username is taken');
+        await this.usersRepository.update(userId, { handleHash: hash, handleSealed: sealed });
+    }
+
+    async clearHandle(userId: number) {
+        await this.usersRepository.update(userId, { handleHash: null as any, handleSealed: null as any });
+    }
+
+    async findByHandle(handle: string) {
+        return this.usersRepository.findOne({ where: { handleHash: this.handleHash(handle) } });
+    }
+
+    async handleSealedFor(userId: number): Promise<string | null> {
+        const u = await this.usersRepository.findOne({ where: { id: userId }, select: ['id', 'handleSealed'] });
+        return u?.handleSealed ?? null;
+    }
+
+    /** `identifier` is an email, an @username, or a Haki code (the QR carries the account name). */
+    async sendFriendRequest(senderId: number, identifier: string): Promise<FriendRequest> {
+        const sender = await this.findOneById(senderId);
+        const id = (identifier ?? '').trim();
+        const recipient = id.startsWith('@')
+            ? await this.findByHandle(id)
+            : id.includes('@')
+                ? await this.findByEmail(id)
+                : (await this.findOne(id)) ?? (await this.findByHandle(id));
+
+        if (!sender || !recipient) throw new NotFoundException('No one found with that username, email or Haki code');
+        if (sender.id === recipient.id) throw new BadRequestException('Cannot add yourself');
 
         // Check if blocked
         const isBlocked = await this.isBlocked(sender.id, recipient.id);
-        if (isBlocked) throw new Error('Cannot send friend request');
+        if (isBlocked) throw new BadRequestException('Cannot send friend request');
 
         // Check if already friends
         const existingFriendship = await this.friendshipRepository.findOne({
@@ -110,7 +168,7 @@ export class UsersService {
             ]
         });
         if (existingFriendship) {
-            throw new Error('Already friends');
+            throw new BadRequestException('Already friends');
         }
 
         // Check if request already exists
@@ -120,7 +178,7 @@ export class UsersService {
                 { sender: { id: recipient.id }, recipient: { id: sender.id }, status: 'pending' }
             ]
         });
-        if (existing) throw new Error('Request already pending');
+        if (existing) throw new BadRequestException('Request already pending');
 
         const request = this.friendRequestRepository.create({
             sender,
@@ -181,6 +239,14 @@ export class UsersService {
         await this.friendRequestRepository.save(request);
     }
 
+    async getFriendIds(userId: number): Promise<number[]> {
+        const friendships = await this.friendshipRepository.find({
+            where: [{ user1: { id: userId } }, { user2: { id: userId } }],
+            relations: ['user1', 'user2'],
+        });
+        return friendships.map(f => (f.user1.id === userId ? f.user2.id : f.user1.id));
+    }
+
     async removeFriend(userId: number, friendId: number): Promise<void> {
         const user = await this.findOneById(userId);
         const friend = await this.findOneById(friendId);
@@ -202,20 +268,25 @@ export class UsersService {
 
 
 
-    async findAll(): Promise<User[]> {
-        return this.usersRepository.find({
-            select: ['id', 'username', 'displayName', 'bio', 'avatarUrl', 'publicKey', 'email'],
-        });
-    }
-
     async create(username: string, email: string, passwordHash: string): Promise<User> {
         const user = this.usersRepository.create({ username, email, password: passwordHash });
         return this.usersRepository.save(user);
     }
 
-    async updateProfile(id: number, profile: { displayName?: string; bio?: string; publicKey?: string }): Promise<User | null> {
-        await this.usersRepository.update(id, profile);
+    async updateProfile(id: number, profile: { displayName?: string; bio?: string; publicKey?: string; birthday?: string | null }): Promise<User | null> {
+        const { displayName, bio, publicKey, birthday } = profile; // only these, never role etc.
+        const patch = Object.fromEntries(Object.entries({ displayName, bio, publicKey, birthday }).filter(([, v]) => v !== undefined));
+        if (Object.keys(patch).length) await this.usersRepository.update(id, patch);
         return this.findOneById(id);
+    }
+
+    async saveBackup(id: number, sealed: string) {
+        await this.usersRepository.update(id, { backupSealed: sealed, backupAt: new Date() });
+    }
+
+    async backupFor(id: number) {
+        const u = await this.usersRepository.findOne({ where: { id }, select: ['id', 'backupSealed', 'backupAt'] });
+        return { sealed: u?.backupSealed ?? null, at: u?.backupAt ?? null };
     }
 
     async updateAvatar(id: number, avatarUrl: string): Promise<User | null> {

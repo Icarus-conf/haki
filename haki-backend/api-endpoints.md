@@ -50,15 +50,6 @@ curl -X GET http://localhost:3000/users/me \
 -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get All Users
-
-`GET /users`
-
-```bash
-curl -X GET http://localhost:3000/users \
--H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
 ### Update Profile Details
 
 `PATCH /users/profile`
