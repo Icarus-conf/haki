@@ -8,6 +8,7 @@ import Access from './access';
 import Audit from './audit';
 import Broadcast from './broadcast';
 import Devices from './devices';
+import Feed from './feed';
 import Logs from './logs';
 import Lounge from './lounge';
 import Overview from './overview';
@@ -20,6 +21,7 @@ const tabs = [
     { id: 'overview', label: 'Overview', icon: 'grid', View: Overview },
     { id: 'users', label: 'People', icon: 'users', View: Users },
     { id: 'devices', label: 'Devices', icon: 'laptop', View: Devices },
+    { id: 'feed', label: 'Feed', icon: 'feed', View: Feed },
     { id: 'reports', label: 'Reports', icon: 'flag', View: Reports },
     { id: 'safety', label: 'Spam signals', icon: 'radar', View: Safety },
     { id: 'lounge', label: 'Lounge', icon: 'chat', View: Lounge },
