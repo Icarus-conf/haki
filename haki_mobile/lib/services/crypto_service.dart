@@ -1,17 +1,125 @@
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:asn1lib/asn1lib.dart';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:cryptography/cryptography.dart' hide Hash;
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pointycastle/export.dart' as pc;
+import 'secure_storage.dart';
 
 class CryptoService {
-  static final _storage = const FlutterSecureStorage();
+  static final _storage = secureStorage;
   static final _aesAlgorithm = AesGcm.with256bits();
+
+  /// What [decrypt] returns when this phone's key can't open a message
+  /// (e.g. it was sent to a key the user has since replaced).
+  static const undecryptable = {'[No Private Key]', '[Encrypted Message]', '[Invalid Data]', '[Decryption Error]'};
+
+  /// Safety number: SHA-512 over the (order-independent) public keys, shown as
+  /// 12 groups of 5 digits. Both people see the same number when no key was swapped.
+  /// With one key it is that key's own fingerprint.
+  static Future<String> safetyNumber(List<String> publicKeys) async {
+    final normalized = publicKeys.map((k) => k.replaceAll(RegExp(r'\s'), '')).toList()..sort();
+    final bytes = (await Sha512().hash(utf8.encode(normalized.join('|')))).bytes; // 64 bytes
+    final groups = <String>[];
+    for (var i = 0; i < 12; i++) {
+      // 5 bytes -> number -> 5 digits (same idea as Signal's safety numbers)
+      var n = 0;
+      for (var j = 0; j < 5; j++) {
+        n = (n * 256 + bytes[i * 5 + j]) % 100000;
+      }
+      groups.add(n.toString().padLeft(5, '0'));
+    }
+    return groups.join(' ');
+  }
   static final Map<String, String> _privKeyCache = {};
+
+  /// RSA modulus of a public key in either format the server may hold: X.509
+  /// SubjectPublicKeyInfo (word-derived keys) or PKCS#1 (re-published by fast_rsa).
+  static BigInt? publicKeyModulus(String key) {
+    try {
+      final body = key.replaceAll(RegExp(r'-----[A-Z ]+-----|\s'), '');
+      var seq = ASN1Parser(base64Decode(body)).nextObject() as ASN1Sequence;
+      if (seq.elements.first is ASN1Sequence) {
+        // X.509: SEQUENCE { algorithm, BIT STRING { RSAPublicKey } }
+        final bits = seq.elements[1] as ASN1BitString;
+        seq = ASN1Parser(Uint8List.fromList(bits.stringValue)).nextObject() as ASN1Sequence;
+      }
+      return (seq.elements.first as ASN1Integer).valueAsBigInteger;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Short id of a public key that ignores its encoding (two encodings of one key match).
+  static Future<String?> keyFingerprint(String key) async {
+    final m = publicKeyModulus(key);
+    if (m == null) return null;
+    final h = await Sha256().hash(utf8.encode(m.toRadixString(16)));
+    return h.bytes.take(12).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  /// Same key pair, regardless of encoding.
+  static bool sameKey(String a, String b) {
+    final ma = publicKeyModulus(a);
+    return ma != null && ma == publicKeyModulus(b);
+  }
+
+  // ===== Linking a device =====
+  // The new device makes a one-time X25519 key and shows it in a QR. The phone derives a shared
+  // AES key with its own one-time key (X25519 + HKDF) and seals the account key to it. The server
+  // relays the sealed blob but can't open it. Both screens show a 6-digit check of the new
+  // device's key, so a server swapping keys would show different digits.
+
+  static Future<(SimpleKeyPair, String)> linkKeyPair() async {
+    final kp = await X25519().newKeyPair();
+    return (kp, base64Encode((await kp.extractPublicKey()).bytes));
+  }
+
+  static Future<SecretKey> _linkKey(SimpleKeyPair mine, String theirPub) async {
+    final shared = await X25519().sharedSecretKey(
+      keyPair: mine,
+      remotePublicKey: SimplePublicKey(base64Decode(theirPub), type: KeyPairType.x25519),
+    );
+    return Hkdf(hmac: Hmac.sha256(), outputLength: 32).deriveKey(secretKey: shared, nonce: utf8.encode('haki-link-v1'));
+  }
+
+  /// Phone side: returns (sealed, my one-time public key).
+  static Future<(String, String)> sealForLink(String plaintext, String theirPub) async {
+    final (mine, minePub) = await linkKeyPair();
+    final box = await _aesAlgorithm.encrypt(utf8.encode(plaintext), secretKey: await _linkKey(mine, theirPub));
+    return (base64Encode(box.concatenation()), minePub);
+  }
+
+  /// New device side.
+  static Future<String> openLink(String sealed, SimpleKeyPair mine, String theirPub) async {
+    final box = SecretBox.fromConcatenation(base64Decode(sealed), nonceLength: 12, macLength: 16);
+    return utf8.decode(await _aesAlgorithm.decrypt(box, secretKey: await _linkKey(mine, theirPub)));
+  }
+
+  /// "123 456": what both screens show for the new device's one-time key.
+  static Future<String> linkCheck(String pub) async {
+    final h = (await Sha256().hash(base64Decode(pub))).bytes;
+    final n = ((h[0] << 16) | (h[1] << 8) | h[2]) % 1000000;
+    final d = n.toString().padLeft(6, '0');
+    return '${d.substring(0, 3)} ${d.substring(3)}';
+  }
+
+  Future<String?> exportPrivateKey(String username) => _getPrivateKey(username);
+
+  Future<void> importPrivateKey(String username, String privateKey) async {
+    await _storage.write(key: 'priv_key_$username', value: privateKey);
+    _privKeyCache[username] = privateKey;
+  }
+
+  /// Whether this phone already holds a private key for [username].
+  Future<bool> hasLocalKey(String username) async => await _getPrivateKey(username) != null;
+
+  /// Public key the 12 words would produce, without storing anything.
+  Future<String> publicKeyFromWords(String mnemonic) async =>
+      _stripPem((await _generateDeterministicRSA(mnemonic))['public']!);
 
   Future<String?> _getPrivateKey(String username) async {
     if (_privKeyCache.containsKey(username)) return _privKeyCache[username];
@@ -20,42 +128,42 @@ class CryptoService {
     return key;
   }
 
-  /// Generates or retrieves RSA keypair.
-  /// If a mnemonic is provided, it derives the key deterministically.
+  /// Generates or retrieves the RSA key pair; with [mnemonic] it is derived from the words.
+  /// Always returns the public key in one canonical encoding (fast_rsa's), so every phone of
+  /// an account publishes the identical string and friends don't see spurious key changes.
   Future<String> initKeys(String username, {String? mnemonic}) async {
-    String? existingPrivKey = await _getPrivateKey(username);
-
-    // If we have an existing key but no mnemonic was stored,
-    // we might want to check if the provided mnemonic matches.
-    // For now, if key exists, we stick with it.
-    if (existingPrivKey != null && mnemonic == null) {
-      var result = await RSA.convertPrivateKeyToPublicKey(existingPrivKey);
-      return _stripPem(result);
+    var privKey = await _getPrivateKey(username);
+    if (privKey == null || mnemonic != null) {
+      if (mnemonic != null) {
+        debugPrint('Crypto: Deriving RSA key from recovery words...');
+        privKey = (await _generateDeterministicRSA(mnemonic))['private']!;
+      } else {
+        // Legacy accounts without words; new accounts always come with words
+        privKey = (await RSA.generate(2048)).privateKey;
+      }
+      // Store securely and refresh the cache, or decrypt keeps using the old key
+      await _storage.write(key: 'priv_key_$username', value: privKey);
+      _privKeyCache[username] = privKey;
     }
+    return _stripPem(await RSA.convertPrivateKeyToPublicKey(privKey));
+  }
 
-    String privKey;
-    String pubKey;
+  /// True when [mnemonic] really re-creates this device's private key. Accounts made
+  /// before the registration fix stored words that never matched their key.
+  Future<bool> mnemonicMatchesKey(String username, String mnemonic) async {
+    final current = await _getPrivateKey(username);
+    if (current == null) return false;
+    final derived = await _generateDeterministicRSA(mnemonic);
+    return derived['private'] == current;
+  }
 
-    if (mnemonic != null) {
-      debugPrint('Crypto: Generating deterministic RSA key from mnemonic...');
-      final keys = await _generateDeterministicRSA(mnemonic);
-      privKey = keys['private']!;
-      pubKey = keys['public']!;
-    } else {
-      debugPrint('Crypto: Generating random RSA key...');
-      var result = await RSA.generate(2048);
-      privKey = result.privateKey;
-      pubKey = result.publicKey;
-
-      // Auto-generate a mnemonic for this new random key is NOT possible
-      // because RSA isn't normally derived from seeds.
-      // So we handle "New Account" by always generating a mnemonic FIRST now?
-      // No, we'll keep it simple: if no mnemonic, it's a legacy random key.
-    }
-
-    // Store Private Key securely
-    await _storage.write(key: 'priv_key_$username', value: privKey);
-    return _stripPem(pubKey);
+  /// New words + a new key pair derived from them. Returns (mnemonic, public key).
+  /// Messages encrypted to the previous key can no longer be decrypted after this.
+  Future<(String, String)> createNewRecoveryPhrase(String username) async {
+    final mnemonic = await generateMnemonic();
+    final pubKey = await initKeys(username, mnemonic: mnemonic);
+    await storeMnemonic(username, mnemonic);
+    return (mnemonic, pubKey);
   }
 
   Future<String> generateMnemonic() async {
@@ -79,7 +187,12 @@ class CryptoService {
     await _storage.write(key: 'recovery_viewed_$username', value: 'true');
   }
 
-  Future<Map<String, String>> _generateDeterministicRSA(String mnemonic) async {
+  /// Deterministic 2048-bit keygen is seconds of pure-Dart math (much longer in debug
+  /// builds). On the UI isolate it froze the screen, spinner included, so run it on its own.
+  Future<Map<String, String>> _generateDeterministicRSA(String mnemonic) =>
+      Isolate.run(() => _deriveKeyPair(mnemonic));
+
+  static Map<String, String> _deriveKeyPair(String mnemonic) {
     // 1. Get seed from mnemonic (returns 64 bytes by default)
     final fullSeed = bip39.mnemonicToSeed(mnemonic);
 
@@ -102,18 +215,20 @@ class CryptoService {
 
     // Convert to PEM using ASN.1 encoding
     final privPem = _encodePrivateKeyToPem(private);
-    final pubPem = _encodePublicKeyToPem(public);
+    final pubPem = _encodePublicKeyToPemStatic(public);
 
     return {'private': privPem, 'public': pubPem};
   }
 
-  String _encodePublicKeyToPem(pc.RSAPublicKey publicKey) {
+  /// X.509 SubjectPublicKeyInfo PEM. The OID must be given as components: passing its
+  /// already-encoded bytes double-encoded it and produced keys nobody could encrypt to.
+  @visibleForTesting
+  static String encodePublicKeyPem(pc.RSAPublicKey publicKey) => _encodePublicKeyToPemStatic(publicKey);
+
+
+  static String _encodePublicKeyToPemStatic(pc.RSAPublicKey publicKey) {
     final algorithmSeq = ASN1Sequence();
-    algorithmSeq.add(
-      ASN1ObjectIdentifier(
-        Uint8List.fromList([0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01]),
-      ),
-    ); // 1.2.840.113549.1.1.1 (rsaEncryption)
+    algorithmSeq.add(ASN1ObjectIdentifier.fromComponentString('1.2.840.113549.1.1.1')); // rsaEncryption
     algorithmSeq.add(ASN1Null());
 
     final rsaPublicKeySeq = ASN1Sequence();
@@ -132,7 +247,7 @@ class CryptoService {
     return '-----BEGIN PUBLIC KEY-----\n${_formatPem(base64)}\n-----END PUBLIC KEY-----';
   }
 
-  String _encodePrivateKeyToPem(pc.RSAPrivateKey privateKey) {
+  static String _encodePrivateKeyToPem(pc.RSAPrivateKey privateKey) {
     final version = ASN1Integer(BigInt.zero); // version 0
     final modulus = ASN1Integer(privateKey.modulus!);
     final publicExponent = ASN1Integer(privateKey.publicExponent!);
@@ -160,7 +275,7 @@ class CryptoService {
     return '-----BEGIN RSA PRIVATE KEY-----\n${_formatPem(base64)}\n-----END RSA PRIVATE KEY-----';
   }
 
-  String _formatPem(String base64String) {
+  static String _formatPem(String base64String) {
     final buffer = StringBuffer();
     for (var i = 0; i < base64String.length; i += 64) {
       final end = (i + 64 < base64String.length) ? i + 64 : base64String.length;
@@ -204,43 +319,33 @@ class CryptoService {
     required String text,
     required String recipientPubKey,
     required String senderPubKey,
-  }) async {
-    // 1. Generate random AES Session Key
+  }) => encryptFor(text, {'r': recipientPubKey, 's': senderPubKey});
+
+  /// Same format with one wrapped key per reader (groups use member ids as names).
+  Future<String> encryptFor(String text, Map<String, String> publicKeys) async {
     final secretKey = await _aesAlgorithm.newSecretKey();
-    final secretKeyBytes = await secretKey.extractBytes();
-
-    // 2. Encrypt text with AES-GCM
     final nonce = _aesAlgorithm.newNonce();
-    final secretBox = await _aesAlgorithm.encrypt(
-      utf8.encode(text),
-      secretKey: secretKey,
-      nonce: nonce,
-    );
-
-    // 3. Wrap the AES Key with RSA (OAEP SHA-256) for both parties
-    final encryptedKeyR = await RSA.encryptOAEP(
-      base64Encode(secretKeyBytes),
-      "", // No label/identifier used in Web Crypto default
-      Hash.SHA256,
-      _ensurePem(recipientPubKey),
-    );
-    final encryptedKeyS = await RSA.encryptOAEP(
-      base64Encode(secretKeyBytes),
-      "", // No label/identifier used in Web Crypto default
-      Hash.SHA256,
-      _ensurePem(senderPubKey),
-    );
-
-    // 4. Return JSON blob
+    final secretBox = await _aesAlgorithm.encrypt(utf8.encode(text), secretKey: secretKey, nonce: nonce);
     return jsonEncode({
       "data": base64Encode([...secretBox.cipherText, ...secretBox.mac.bytes]),
       "iv": base64Encode(nonce),
-      "keys": {"r": encryptedKeyR, "s": encryptedKeyS},
+      "keys": await _wrapKey(await secretKey.extractBytes(), publicKeys),
     });
   }
 
+  /// RSA-OAEP (SHA-256) wraps the AES key once per reader.
+  Future<Map<String, String>> _wrapKey(List<int> secretKeyBytes, Map<String, String> publicKeys) async {
+    final b64 = base64Encode(secretKeyBytes);
+    final entries = await Future.wait(publicKeys.entries.map(
+      (e) async => MapEntry(e.key, await RSA.encryptOAEP(b64, "", Hash.SHA256, _ensurePem(e.value))),
+    ));
+    return Map.fromEntries(entries);
+  }
+
   /// Decrypts the hybrid payload using the local private key.
-  Future<String> decrypt(String payloadStr, String username) async {
+  /// [preferKey] names the wrapped key that is probably ours (a member id in groups), so a
+  /// big group doesn't cost one failed RSA attempt per member.
+  Future<String> decrypt(String payloadStr, String username, {String? preferKey}) async {
     Map<String, dynamic>? map;
     try {
       map = jsonDecode(payloadStr);
@@ -263,7 +368,8 @@ class CryptoService {
       final pemPrivKey = _ensurePem(privKey, isPublic: false);
       String? decryptedAesKeyBase64;
       List<String> errors = [];
-      for (var encryptedKey in keys.values) {
+      final ordered = [?keys[preferKey], ...keys.entries.where((e) => e.key != preferKey).map((e) => e.value)];
+      for (var encryptedKey in ordered) {
         try {
           decryptedAesKeyBase64 = await RSA.decryptOAEP(encryptedKey, "", Hash.SHA256, pemPrivKey);
           if (decryptedAesKeyBase64.isNotEmpty) break;
@@ -303,30 +409,16 @@ class CryptoService {
     required Uint8List bytes,
     required String recipientPubKey,
     required String senderPubKey,
-  }) async {
-    final secretKey = await _aesAlgorithm.newSecretKey();
-    final secretKeyBytes = await secretKey.extractBytes();
+  }) => encryptMediaFor(bytes, {'r': recipientPubKey, 's': senderPubKey});
 
+  Future<Map<String, dynamic>> encryptMediaFor(Uint8List bytes, Map<String, String> publicKeys) async {
+    final secretKey = await _aesAlgorithm.newSecretKey();
     final nonce = _aesAlgorithm.newNonce();
     final secretBox = await _aesAlgorithm.encrypt(bytes, secretKey: secretKey, nonce: nonce);
-
-    final encryptedKeyR = await RSA.encryptOAEP(
-      base64Encode(secretKeyBytes),
-      "",
-      Hash.SHA256,
-      _ensurePem(recipientPubKey),
-    );
-    final encryptedKeyS = await RSA.encryptOAEP(
-      base64Encode(secretKeyBytes),
-      "",
-      Hash.SHA256,
-      _ensurePem(senderPubKey),
-    );
-
     return {
       "data": Uint8List.fromList([...secretBox.cipherText, ...secretBox.mac.bytes]),
       "iv": base64Encode(nonce),
-      "keys": {"r": encryptedKeyR, "s": encryptedKeyS},
+      "keys": await _wrapKey(await secretKey.extractBytes(), publicKeys),
     };
   }
 

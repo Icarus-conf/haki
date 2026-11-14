@@ -42,3 +42,12 @@ android {
 flutter {
     source = "../.."
 }
+
+// Push needs a Firebase project: drop its google-services.json next to this file. Without it the
+// app still builds and runs; it just doesn't get Android pushes.
+if (file("google-services.json").exists()) apply(plugin = "com.google.gms.google-services")
+
+dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-messaging")
+}

@@ -1,115 +1,126 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import 'message_envelope.dart';
 import 'reaction_model.dart';
 
-class MessageModel {
-  final int? id; // Database ID
-  final String sender;
-  final String username;
-  final int senderId;
-  final String? avatarUrl;
-  final String message;
-  final String? attachmentUrl;
-  final DateTime timestamp;
-  final int? recipientId;
-  final String? tempId;
-  final bool isSending;
-  final String? mediaIv;
-  final Map<String, dynamic>? mediaKeys;
-  final String? attachmentType; // 'image' or 'voice'
-  final List<ReactionModel> reactions;
-  final int? replyToMessageId;
-  final String? replyToSender;
-  final String? replyToMessage;
+part 'message_model.freezed.dart';
 
-  MessageModel({
-    this.id,
-    required this.sender,
-    required this.username,
-    required this.senderId,
-    this.avatarUrl,
-    required this.message,
-    this.attachmentUrl,
-    required this.timestamp,
-    this.recipientId,
-    this.tempId,
-    this.isSending = false,
-    this.mediaIv,
-    this.mediaKeys,
-    this.attachmentType,
-    this.reactions = const [],
-    this.replyToMessageId,
-    this.replyToSender,
-    this.replyToMessage,
-  });
+@Freezed(fromJson: false, toJson: false)
+abstract class MessageModel with _$MessageModel {
+  const MessageModel._();
 
-  factory MessageModel.fromJson(Map<String, dynamic> json) {
-    return MessageModel(
-      id: json['id'],
-      sender: json['sender'],
-      username: json['username'],
-      senderId: json['senderId'],
-      avatarUrl: json['avatarUrl'],
-      message: json['message'],
-      attachmentUrl: json['attachmentUrl'],
-      timestamp: DateTime.parse(json['timestamp']),
-      recipientId: json['recipientId'],
-      tempId: json['tempId'],
-      isSending: false,
-      mediaIv: json['mediaIv'],
-      mediaKeys: json['mediaKeys'],
-      attachmentType: json['attachmentType'],
-      reactions:
-          (json['reactions'] as List<dynamic>?)?.map((r) => ReactionModel.fromJson(r)).toList() ??
-          [],
-      replyToMessageId: json['replyToMessageId'],
-      replyToSender: json['replyToSender'],
-      replyToMessage: json['replyToMessage'],
-    );
-  }
-
-  MessageModel copyWith({
-    int? id,
-    String? sender,
-    String? username,
-    int? senderId,
+  const factory MessageModel({
+    int? id, // Database ID
+    required String sender,
+    required String username,
+    required int senderId,
     String? avatarUrl,
-    String? message,
+    required String message,
     String? attachmentUrl,
-    DateTime? timestamp,
+    required DateTime timestamp,
     int? recipientId,
+    int? groupId,
     String? tempId,
-    bool? isSending,
+    @Default(false) bool isSending,
+    @Default(false) bool isRead,
     String? mediaIv,
     Map<String, dynamic>? mediaKeys,
-    String? attachmentType,
-    List<ReactionModel>? reactions,
+    String? attachmentType, // 'image' or 'voice'
+    @Default([]) List<ReactionModel> reactions,
     int? replyToMessageId,
     String? replyToSender,
     String? replyToMessage,
-  }) {
-    return MessageModel(
-      id: id ?? this.id,
-      sender: sender ?? this.sender,
-      username: username ?? this.username,
-      senderId: senderId ?? this.senderId,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
-      message: message ?? this.message,
-      attachmentUrl: attachmentUrl ?? this.attachmentUrl,
-      timestamp: timestamp ?? this.timestamp,
-      recipientId: recipientId ?? this.recipientId,
-      tempId: tempId ?? this.tempId,
-      isSending: isSending ?? this.isSending,
-      mediaIv: mediaIv ?? this.mediaIv,
-      mediaKeys: mediaKeys ?? this.mediaKeys,
-      attachmentType: attachmentType ?? this.attachmentType,
-      reactions: reactions ?? this.reactions,
-      replyToMessageId: replyToMessageId ?? this.replyToMessageId,
-      replyToSender: replyToSender ?? this.replyToSender,
-      replyToMessage: replyToMessage ?? this.replyToMessage,
-    );
-  }
 
-  @override
-  String toString() {
-    return 'MessageModel(id: $id, senderId: $senderId, recipientId: $recipientId)';
-  }
+    /// Decrypted from the message itself (see MessageEnvelope); never fetched by the reader.
+    LinkPreview? linkPreview,
+    @Default(false) bool forwarded,
+    DateTime? editedAt,
+    @Default(false) bool pinned,
+
+    // From the encrypted body
+    PollData? poll,
+    StoryRef? storyRef,
+    String? sticker,
+    int? durationSec,
+
+    /// userId → chosen option numbers (the server can count, not read, the poll).
+    @Default({}) Map<int, List<int>> pollVotes,
+
+    /// Set while a scheduled message waits on the server.
+    DateTime? scheduledAt,
+
+    /// Disappearing messages: the server deletes it at this time.
+    DateTime? expiresAt,
+
+    /// View once (private chats): the file is deleted once the recipient opens it.
+    @Default(false) bool viewOnce,
+    DateTime? viewedAt,
+
+    /// Name and size of a shared video or document (from the encrypted body).
+    FileMeta? file,
+  }) = _MessageModel;
+
+  factory MessageModel.fromJson(Map<String, dynamic> json) => MessageModel(
+    id: json['id'],
+    sender: json['sender'],
+    username: json['username'],
+    senderId: json['senderId'],
+    avatarUrl: json['avatarUrl'],
+    message: json['message'] ?? '',
+    attachmentUrl: json['attachmentUrl'],
+    timestamp: DateTime.parse(json['timestamp']),
+    recipientId: json['recipientId'],
+    groupId: json['groupId'],
+    tempId: json['tempId'],
+    isRead: json['isRead'] ?? false,
+    mediaIv: json['mediaIv'],
+    mediaKeys: json['mediaKeys'],
+    attachmentType: json['attachmentType'],
+    reactions:
+        (json['reactions'] as List<dynamic>?)?.map((r) => ReactionModel.fromJson(r)).toList() ??
+        const [],
+    replyToMessageId: json['replyToMessageId'],
+    replyToSender: json['replyToSender'],
+    replyToMessage: json['replyToMessage'],
+    editedAt: json['editedAt'] != null ? DateTime.parse(json['editedAt']) : null,
+    pinned: json['pinned'] ?? false,
+    pollVotes: parseVotes(json['pollVotes']),
+    scheduledAt: json['scheduledAt'] != null ? DateTime.parse(json['scheduledAt']) : null,
+    expiresAt: json['expiresAt'] != null ? DateTime.parse(json['expiresAt']) : null,
+    viewOnce: json['viewOnce'] ?? false,
+    viewedAt: json['viewedAt'] != null ? DateTime.parse(json['viewedAt']) : null,
+  );
+
+  static Map<int, List<int>> parseVotes(dynamic raw) => {
+    if (raw is Map)
+      for (final e in raw.entries)
+        if (int.tryParse('${e.key}') != null && e.value is List)
+          int.parse('${e.key}'): [for (final o in e.value as List) (o as num).toInt()],
+  };
+
+  /// Copies the decrypted body's parts onto this message.
+  MessageModel withBody(EnvelopeBody b) => copyWith(
+    message: b.text,
+    linkPreview: b.preview,
+    forwarded: b.forwarded,
+    poll: b.poll,
+    storyRef: b.story,
+    sticker: b.sticker,
+    durationSec: b.durationSec,
+    file: b.file,
+    isSending: false,
+  );
+
+  bool get isVoice =>
+      attachmentType == 'voice' || (attachmentUrl?.toLowerCase().contains('.m4a') ?? false);
+
+  bool get isVideo => attachmentType == 'video';
+  bool get isFile => attachmentType == 'file';
+
+  /// Older messages have no type: anything that isn't voice was a photo.
+  bool get isImage =>
+      attachmentType == 'image' || (attachmentType == null && attachmentUrl != null && !isVoice);
+
+  /// A view-once photo / voice note that has been opened (its file is gone).
+  bool get isOpenedViewOnce => viewOnce && viewedAt != null;
 }

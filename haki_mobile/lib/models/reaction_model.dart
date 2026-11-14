@@ -1,26 +1,20 @@
-class ReactionModel {
-  final int id;
-  final String emoji;
-  final int userId;
-  final String username;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  ReactionModel({
-    required this.id,
-    required this.emoji,
-    required this.userId,
-    required this.username,
-  });
+part 'reaction_model.freezed.dart';
 
-  factory ReactionModel.fromJson(Map<String, dynamic> json) {
-    return ReactionModel(
-      id: json['id'] ?? 0,
-      emoji: json['emoji'] ?? '',
-      userId: json['userId'] ?? 0,
-      username: json['username'] ?? 'Unknown',
-    );
-  }
+@Freezed(fromJson: false, toJson: false)
+abstract class ReactionModel with _$ReactionModel {
+  const factory ReactionModel({
+    required int id,
+    required String emoji,
+    required int userId,
+    required String username,
+  }) = _ReactionModel;
 
-  Map<String, dynamic> toJson() {
-    return {'id': id, 'emoji': emoji, 'userId': userId, 'username': username};
-  }
+  factory ReactionModel.fromJson(Map<String, dynamic> json) => ReactionModel(
+    id: json['id'] ?? 0,
+    emoji: json['emoji'] ?? '',
+    userId: json['userId'] ?? 0,
+    username: json['username'] ?? 'Unknown',
+  );
 }

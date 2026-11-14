@@ -1,24 +1,22 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'user_model.dart';
 
-class FriendRequestModel {
-  final int id;
-  final UserModel sender;
-  final String status;
-  final DateTime createdAt;
+part 'friend_request_model.freezed.dart';
 
-  FriendRequestModel({
-    required this.id,
-    required this.sender,
-    required this.status,
-    required this.createdAt,
-  });
+@Freezed(fromJson: false, toJson: false)
+abstract class FriendRequestModel with _$FriendRequestModel {
+  const factory FriendRequestModel({
+    required int id,
+    required UserModel sender,
+    required String status,
+    required DateTime createdAt,
+  }) = _FriendRequestModel;
 
-  factory FriendRequestModel.fromJson(Map<String, dynamic> json) {
-    return FriendRequestModel(
-      id: json['id'],
-      sender: UserModel.fromJson(json['sender']),
-      status: json['status'],
-      createdAt: DateTime.parse(json['createdAt']),
-    );
-  }
+  factory FriendRequestModel.fromJson(Map<String, dynamic> json) => FriendRequestModel(
+    id: json['id'],
+    sender: UserModel.fromJson(json['sender']),
+    status: json['status'],
+    createdAt: DateTime.parse(json['createdAt']),
+  );
 }

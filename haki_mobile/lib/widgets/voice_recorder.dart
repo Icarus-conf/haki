@@ -7,8 +7,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 
+import '../core/theme/haki_theme.dart';
+import '../core/widgets/glass.dart';
+
 class VoiceRecorder extends StatefulWidget {
-  final Function(String path) onStop;
+  /// The recording and how long it is (shown to the other person before they play it).
+  final void Function(String path, Duration length) onStop;
   final VoidCallback onCancel;
 
   const VoiceRecorder({super.key, required this.onStop, required this.onCancel});
@@ -37,7 +41,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
+    ); // pulses only while recording: a repeating ticker redraws the screen every frame
 
     _scaleController = AnimationController(
       vsync: this,
@@ -94,6 +98,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
 
         // Start wave animation
         _waveController.repeat();
+        _pulseController.repeat(reverse: true);
 
         // Start timer with shorter interval for smoother updates
         _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
@@ -119,6 +124,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
   Future<void> _stopRecording() async {
     _timer?.cancel();
     _waveController.stop();
+    _pulseController.stop();
 
     // Add haptic feedback
     if (_isCancelled) {
@@ -133,8 +139,19 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
       _isStarting = false;
     });
 
+    // A tap or very short hold is almost always accidental: don't send a blip
+    final tooShort = _duration < const Duration(seconds: 1);
+    if (!_isCancelled && path != null && tooShort) {
+      try {
+        await File(path).delete();
+      } catch (_) {}
+      widget.onCancel();
+      if (mounted) showHakiToast(context, 'Hold the mic to record, release to send');
+      return;
+    }
+
     if (!_isCancelled && path != null) {
-      widget.onStop(path);
+      widget.onStop(path, _duration);
     } else if (_isCancelled && path != null) {
       try {
         await File(path).delete();
@@ -187,8 +204,8 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
           gradient: _isRecording
               ? LinearGradient(
                   colors: _isCancelled
-                      ? [Colors.red.shade50, Colors.red.shade100]
-                      : [Colors.blue.shade50, Colors.purple.shade50],
+                      ? [HakiColors.danger.withValues(alpha: 0.25), HakiColors.danger.withValues(alpha: 0.25)]
+                      : [HakiColors.surfaceHigh, HakiColors.surfaceHigh],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
@@ -248,7 +265,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: _isCancelled ? Colors.red : Colors.grey[800],
+                      color: _isCancelled ? Colors.red : Colors.white,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
@@ -264,13 +281,13 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
                         Icon(
                           Icons.arrow_back_rounded,
                           size: 14,
-                          color: _isCancelled ? Colors.red : Colors.grey[600],
+                          color: _isCancelled ? Colors.red : HakiColors.textMuted,
                         ),
                         const SizedBox(width: 3),
                         Text(
                           _isCancelled ? "Cancel" : "Slide",
                           style: TextStyle(
-                            color: _isCancelled ? Colors.red : Colors.grey[600],
+                            color: _isCancelled ? Colors.red : HakiColors.textMuted,
                             fontSize: 12,
                             fontWeight: _isCancelled ? FontWeight.bold : FontWeight.w500,
                           ),
@@ -281,23 +298,19 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
                 ],
               )
             : Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color.fromARGB(255, 52, 55, 149), Color.fromARGB(255, 98, 98, 197)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: HakiColors.lime,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withValues(alpha: 0.3),
+                      color: HakiColors.lime.withValues(alpha: 0.25),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: const Icon(Icons.mic_rounded, color: Colors.white, size: 24),
+                child: const Icon(Icons.mic_rounded, color: HakiColors.onLime, size: 20),
               ),
       ),
     );

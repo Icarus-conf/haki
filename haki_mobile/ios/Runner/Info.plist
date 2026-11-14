@@ -32,11 +32,42 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Need access to camera for taking profile pictures</string>
+	<string>Haki uses the camera to scan Haki codes and take profile photos.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Haki uses Face ID to open the chats you lock.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Need access to microphone for video recording</string>
+	<string>Haki uses the microphone for voice calls and voice messages.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Need access to photo library for profile picture and message attachments</string>
+	<string>Haki uses your photos for your profile picture, stories and the photos you send.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Haki turns voice messages into text on your phone. Audio is never sent anywhere for this.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>remote-notification</string>
+		<string>voip</string>
+	</array>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UIWindowScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>flutter</string>
+					<key>UISceneDelegateClassName</key>
+					<string>FlutterSceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

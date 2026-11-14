@@ -7,85 +7,97 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../models/message_model.dart';
 import 'api_service.dart';
 
+/// Socket.IO wrapper. Every server event is forwarded onto one broadcast bus when the
+/// socket is created, so listeners can subscribe before or after `connect()` and still
+/// receive events (previously `socket?.on(...)` ran while the socket was still null).
 class ChatService {
   IO.Socket? socket;
-  final _messageController = StreamController<MessageModel>.broadcast();
-  final _historyController = StreamController<List<MessageModel>>.broadcast();
-  final _onlineUsersController = StreamController<List<int>>.broadcast();
-  final _friendRequestController = StreamController<dynamic>.broadcast();
-  final _deleteController = StreamController<int>.broadcast();
-  final _typingController = StreamController<Map<String, dynamic>>.broadcast();
-  final _messageErrorController = StreamController<dynamic>.broadcast();
-  final _systemMessageController = StreamController<String>.broadcast();
+  final _bus = StreamController<(String, dynamic)>.broadcast();
 
-  Stream<MessageModel> get messages => _messageController.stream;
-  Stream<List<MessageModel>> get history => _historyController.stream;
-  Stream<List<int>> get onlineUsers => _onlineUsersController.stream;
-  Stream<dynamic> get friendRequests => _friendRequestController.stream;
-  Stream<int> get deletedMessages => _deleteController.stream;
-  Stream<Map<String, dynamic>> get typingEvents => _typingController.stream;
-  Stream<dynamic> get messageErrors => _messageErrorController.stream;
-  Stream<String> get systemMessages => _systemMessageController.stream;
+  static const _serverEvents = [
+    'message',
+    'history',
+    'online_users',
+    'friend_request',
+    'friend_removed',
+    'friend_accepted',
+    'message_deleted',
+    'message:reaction',
+    'messages_read',
+    'user_typing',
+    'user:status',
+    'user:key',
+    'story_posted',
+    'message_error',
+    'system_message',
+    'call_offer',
+    'call_answer',
+    'ice_candidate',
+    'call_rejected',
+    'call_ended',
+    'message_edited',
+    'message_hidden',
+    'message_pinned',
+    'mention',
+    'group_updated',
+    'poll_votes',
+    'message_scheduled',
+    'story_liked',
+    'disappearing_changed',
+    'message_viewed',
+    'read_sync',
+    'group_read',
+    'group_call',
+    'gc_signal',
+  ];
+
+  /// Raw payloads of one server event.
+  Stream<dynamic> on(String event) => _bus.stream.where((e) => e.$1 == event).map((e) => e.$2);
+
+  Stream<MessageModel> get messages => on('message').map((d) => MessageModel.fromJson(d));
+  Stream<List<MessageModel>> get history => on(
+    'history',
+  ).map((d) => (d['messages'] as List).map((m) => MessageModel.fromJson(m)).toList());
+  Stream<List<int>> get onlineUsers => on('online_users').map((d) => List<int>.from(d));
+  Stream<dynamic> get friendEvents =>
+      _bus.stream.where((e) => e.$1.startsWith('friend_')).map((e) => e.$2);
+  Stream<int> get deletedMessages => on('message_deleted').map((d) => d['messageId'] as int);
+  Stream<String> get systemMessages => on('system_message').map((d) => d['message'] as String);
 
   void connect(String token) {
+    socket?.dispose();
     socket = IO.io(
       ApiService.baseUrl,
-      IO.OptionBuilder().setTransports(['websocket']).setAuth({'token': 'Bearer $token'}).build(),
+      IO.OptionBuilder()
+          .setTransports(['websocket'])
+          .setAuth({'token': 'Bearer $token'})
+          .enableForceNew()
+          .build(),
     );
-
     socket!.onConnect((_) => log('Connected to Chat Socket'));
-
-    socket!.on('message', (data) {
-      _messageController.add(MessageModel.fromJson(data));
-    });
-
-    socket!.on('history', (data) {
-      final List msgs = data['messages'];
-      _historyController.add(msgs.map((m) => MessageModel.fromJson(m)).toList());
-    });
-
-    socket!.on('online_users', (data) {
-      _onlineUsersController.add(List<int>.from(data));
-    });
-
-    socket!.on('friend_request', (data) {
-      _friendRequestController.add(data);
-    });
-
-    socket!.on('friend_removed', (data) {
-      _friendRequestController.add(data);
-    });
-
-    socket!.on('friend_accepted', (data) {
-      _friendRequestController.add(data);
-    });
-
-    socket!.on('message_deleted', (data) {
-      _deleteController.add(data['messageId']);
-    });
-
-    socket!.on('user_typing', (data) {
-      _typingController.add({
-        'userId': data['userId'],
-        'username': data['username'],
-        'isTyping': data['isTyping'],
-      });
-    });
-
-    socket!.on('message_error', (data) {
-      _messageErrorController.add(data);
-    });
-
-    socket!.on('system_message', (data) {
-      _systemMessageController.add(data['message']);
-    });
-
     socket!.onDisconnect((_) => log('Disconnected from Chat Socket'));
+    for (final event in _serverEvents) {
+      socket!.on(event, (data) => _bus.add((event, data)));
+    }
+  }
+
+  void emit(String event, Map<String, dynamic> data) => socket?.emit(event, data);
+
+  /// Emit and wait for the server's reply (null if not connected or no reply in 8 s).
+  Future<dynamic> request(String event, Map<String, dynamic> data) {
+    final s = socket;
+    if (s == null) return Future.value(null);
+    final done = Completer<dynamic>();
+    s.emitWithAck(event, data, ack: (res) {
+      if (!done.isCompleted) done.complete(res);
+    });
+    return done.future.timeout(const Duration(seconds: 8), onTimeout: () => null);
   }
 
   void sendMessage(
     String text, {
     int? recipientId,
+    int? groupId,
     String? attachmentUrl,
     String? tempId,
     String? mediaIv,
@@ -94,50 +106,52 @@ class ChatService {
     int? replyToMessageId,
     String? replyToSender,
     String? replyToMessage,
+    DateTime? sendAt,
+    bool viewOnce = false,
   }) {
-    socket?.emit('message', {
+    emit('message', {
+      if (viewOnce) 'viewOnce': true,
+      'sendAt': ?sendAt?.toUtc().toIso8601String(),
       'message': text,
-      if (recipientId != null) 'recipientId': recipientId,
-      if (attachmentUrl != null) 'attachmentUrl': attachmentUrl,
-      if (tempId != null) 'tempId': tempId,
-      if (mediaIv != null) 'mediaIv': mediaIv,
-      if (mediaKeys != null) 'mediaKeys': mediaKeys,
-      if (attachmentType != null) 'attachmentType': attachmentType,
-      if (replyToMessageId != null) 'replyToMessageId': replyToMessageId,
-      if (replyToSender != null) 'replyToSender': replyToSender,
-      if (replyToMessage != null) 'replyToMessage': replyToMessage,
+      'recipientId': ?recipientId,
+      'groupId': ?groupId,
+      'attachmentUrl': ?attachmentUrl,
+      'tempId': ?tempId,
+      'mediaIv': ?mediaIv,
+      'mediaKeys': ?mediaKeys,
+      'attachmentType': ?attachmentType,
+      'replyToMessageId': ?replyToMessageId,
+      'replyToSender': ?replyToSender,
+      'replyToMessage': ?replyToMessage,
     });
   }
 
-  void deleteMessage(int messageId) {
-    socket?.emit('delete_message', {'messageId': messageId});
-  }
-
-  void emitTypingStart(int recipientId) {
-    socket?.emit('typing_start', {'recipientId': recipientId});
-  }
-
-  void emitTypingStop(int recipientId) {
-    socket?.emit('typing_stop', {'recipientId': recipientId});
-  }
-
-  void requestHistory({int? recipientId}) {
-    socket?.emit('get_history', {'recipientId': recipientId});
-  }
+  void setDisappearing(int seconds, {int? recipientId, int? groupId}) =>
+      emit('set_disappearing', {'seconds': seconds, 'recipientId': ?recipientId, 'groupId': ?groupId});
+  void openViewOnce(int messageId) => emit('open_view_once', {'messageId': messageId});
+  void deleteMessage(int messageId) => emit('delete_message', {'messageId': messageId});
+  void react(int messageId, String emoji) =>
+      emit('message:react', {'messageId': messageId, 'emoji': emoji});
+  void editMessage(int messageId, String body) => emit('edit_message', {'messageId': messageId, 'message': body});
+  void hideMessage(int messageId) => emit('hide_message', {'messageId': messageId});
+  void pinMessage(int messageId, bool pinned) => emit('pin_message', {'messageId': messageId, 'pinned': pinned});
+  void vote(int messageId, List<int> options) => emit('poll_vote', {'messageId': messageId, 'options': options});
+  void markRead(int friendId) => emit('mark_read', {'friendId': friendId});
+  void markGroupRead(int groupId) => emit('mark_read', {'groupId': groupId});
+  void emitTyping(bool typing, {int? recipientId, int? groupId}) => emit(
+    typing ? 'typing_start' : 'typing_stop',
+    {'recipientId': ?recipientId, 'groupId': ?groupId},
+  );
+  void requestHistory({int? recipientId, int? groupId, int? limit}) =>
+      emit('get_history', {'recipientId': recipientId, 'groupId': ?groupId, 'limit': ?limit});
 
   void disconnect() {
-    socket?.disconnect();
+    socket?.dispose();
+    socket = null;
   }
 
   void dispose() {
-    socket?.disconnect();
-    _messageController.close();
-    _historyController.close();
-    _onlineUsersController.close();
-    _friendRequestController.close();
-    _deleteController.close();
-    _typingController.close();
-    _messageErrorController.close();
-    _systemMessageController.close();
+    disconnect();
+    _bus.close();
   }
 }
