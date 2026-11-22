@@ -136,3 +136,7 @@ haki_mobile/lib
 haki-dashboard/src/app/dashboard
   one file per dashboard page
 ```
+
+## License
+
+Haki is licensed under the [GNU Affero General Public License v3.0](LICENSE). If you run a modified version of Haki as a service, you must make your changes available to its users under the same license.
