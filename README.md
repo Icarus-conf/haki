@@ -1,6 +1,37 @@
-# Haki
+<p align="center">
+  <img src="docs/icon.png" width="96" alt="Haki icon">
+</p>
 
-An end-to-end encrypted chat app: 1:1 and group chats, voice and video calls, stories, a friends feed, linked devices and an admin console.
+<h1 align="center">Haki</h1>
+
+<p align="center">
+  <strong>Open-source, self-hostable, end-to-end encrypted chat.</strong><br>
+  One Flutter app for iOS, Android, macOS, Windows and the web. Your server, your keys.
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-DDFB5C?style=flat-square" alt="License: AGPL-3.0"></a>
+  <img src="https://img.shields.io/badge/Flutter-3.47-02569B?style=flat-square&logo=flutter&logoColor=white" alt="Flutter 3.47">
+  <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square&logo=nestjs&logoColor=white" alt="NestJS 11">
+  <img src="https://img.shields.io/badge/self--host-docker%20compose-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Self-host with Docker Compose">
+  <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20Android%20%7C%20macOS%20%7C%20Windows%20%7C%20Web-7B5CFF?style=flat-square" alt="Platforms">
+</p>
+
+<p align="center">
+  <img src="docs/demo.gif" width="300" alt="Sending a message, getting a live reply, then browsing the feed">
+</p>
+
+<p align="center">
+  <a href="#run-it-locally">Run it in 5 minutes</a> ·
+  <a href="SECURITY.md">How the encryption works</a> ·
+  <a href="CONTRIBUTING.md">Contribute</a>
+</p>
+
+**What's inside:** 1:1 and group chats, voice and video calls, stories, a friends feed with photos and videos, disappearing and view-once messages, linked devices (scan a code to add your Mac or browser), and an admin console that only ever sees counts.
+
+- **No phone number.** Your account is 12 recovery words on your device.
+- **Encrypted on the device.** The server stores ciphertext for messages, media, stories and feed posts.
+- **Self-host in one command.** `docker compose up` runs the API, database, dashboard and TURN server.
 
 | Folder | What it is | Stack |
 | --- | --- | --- |
