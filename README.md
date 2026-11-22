@@ -10,6 +10,32 @@ An end-to-end encrypted chat app: 1:1 and group chats, voice and video calls, st
 
 Messages, media, stories and feed posts are encrypted on the device (AES-256-GCM, with the key wrapped per reader using RSA-OAEP). The server only stores ciphertext. The public Lounge room, profile info and metadata (who is friends with whom, timestamps, counts) are not encrypted.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/04-chats.jpg" width="200" alt="Chat list">
+  <img src="docs/screenshots/05-chat.jpg" width="200" alt="A 1:1 chat">
+  <img src="docs/screenshots/06-group.jpg" width="200" alt="A group chat">
+  <img src="docs/screenshots/07-feed.jpg" width="200" alt="The friends feed">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/09-post.jpg" width="200" alt="A post with reactions and comments">
+  <img src="docs/screenshots/10-profile.jpg" width="200" alt="Profile and Haki code">
+  <img src="docs/screenshots/01-welcome.jpg" width="200" alt="Welcome screen">
+  <img src="docs/screenshots/03-recovery-words.jpg" width="200" alt="The 12 recovery words">
+</p>
+
+**Admin dashboard** (counts and timestamps only, never message content):
+
+<p align="center">
+  <img src="docs/screenshots/11-dashboard-overview.jpg" width="820" alt="Dashboard overview">
+</p>
+<p align="center">
+  <img src="docs/screenshots/14-dashboard-feed.jpg" width="405" alt="Dashboard feed insights">
+  <img src="docs/screenshots/13-dashboard-devices.jpg" width="405" alt="Dashboard device insights">
+</p>
+
 ## What you need
 
 - Docker Desktop (runs Postgres, the API, the dashboard and a TURN server)
