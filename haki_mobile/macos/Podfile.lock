@@ -1,0 +1,109 @@
+PODS:
+  - audioplayers_darwin (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - fast_rsa (0.6.0):
+    - FlutterMacOS
+  - file_picker_darwin (1.0.0):
+    - Flutter
+    - FlutterMacOS
+  - file_selector_macos (0.0.1):
+    - FlutterMacOS
+  - flutter_secure_storage_darwin (10.0.0):
+    - Flutter
+    - FlutterMacOS
+  - flutter_webrtc (1.2.0):
+    - FlutterMacOS
+    - WebRTC-SDK (= 137.7151.04)
+  - FlutterMacOS (1.0.0)
+  - local_auth_darwin (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - mobile_scanner (7.0.0):
+    - Flutter
+    - FlutterMacOS
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - record_macos (1.1.0):
+    - FlutterMacOS
+  - sqflite_darwin (0.0.4):
+    - Flutter
+    - FlutterMacOS
+  - url_launcher_macos (0.0.1):
+    - FlutterMacOS
+  - video_player_avfoundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - WebRTC-SDK (137.7151.04)
+
+DEPENDENCIES:
+  - audioplayers_darwin (from `Flutter/ephemeral/.symlinks/plugins/audioplayers_darwin/darwin`)
+  - fast_rsa (from `Flutter/ephemeral/.symlinks/plugins/fast_rsa/macos`)
+  - file_picker_darwin (from `Flutter/ephemeral/.symlinks/plugins/file_picker_darwin/darwin`)
+  - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
+  - flutter_secure_storage_darwin (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
+  - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral`)
+  - local_auth_darwin (from `Flutter/ephemeral/.symlinks/plugins/local_auth_darwin/darwin`)
+  - mobile_scanner (from `Flutter/ephemeral/.symlinks/plugins/mobile_scanner/darwin`)
+  - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
+  - record_macos (from `Flutter/ephemeral/.symlinks/plugins/record_macos/macos`)
+  - sqflite_darwin (from `Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin`)
+  - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
+  - video_player_avfoundation (from `Flutter/ephemeral/.symlinks/plugins/video_player_avfoundation/darwin`)
+
+SPEC REPOS:
+  trunk:
+    - WebRTC-SDK
+
+EXTERNAL SOURCES:
+  audioplayers_darwin:
+    :path: Flutter/ephemeral/.symlinks/plugins/audioplayers_darwin/darwin
+  fast_rsa:
+    :path: Flutter/ephemeral/.symlinks/plugins/fast_rsa/macos
+  file_picker_darwin:
+    :path: Flutter/ephemeral/.symlinks/plugins/file_picker_darwin/darwin
+  file_selector_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
+  flutter_secure_storage_darwin:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_darwin/darwin
+  flutter_webrtc:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos
+  FlutterMacOS:
+    :path: Flutter/ephemeral
+  local_auth_darwin:
+    :path: Flutter/ephemeral/.symlinks/plugins/local_auth_darwin/darwin
+  mobile_scanner:
+    :path: Flutter/ephemeral/.symlinks/plugins/mobile_scanner/darwin
+  path_provider_foundation:
+    :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
+  record_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/record_macos/macos
+  sqflite_darwin:
+    :path: Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin
+  url_launcher_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
+  video_player_avfoundation:
+    :path: Flutter/ephemeral/.symlinks/plugins/video_player_avfoundation/darwin
+
+SPEC CHECKSUMS:
+  audioplayers_darwin: 4f9ca89d92d3d21cec7ec580e78ca888e5fb68bd
+  fast_rsa: 940a67b8d8e425f37708189361efc90be7299d66
+  file_picker_darwin: 4c2b9a50ea44cb3b071381ea0cf48591bdd80251
+  file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
+  flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
+  flutter_webrtc: 718eae22a371cd94e5d56aa4f301443ebc5bb737
+  FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
+  local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
+  mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
+  path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
+  record_macos: 43194b6c06ca6f8fa132e2acea72b202b92a0f5b
+  sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
+  url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
+  video_player_avfoundation: bc5f800d1e1c4f389bc5d51778a4f89dd1bf4a77
+  WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
+
+PODFILE CHECKSUM: 1e95c36afbfd1cb6423ceca4de7a8e1b256fb6ac
+
+COCOAPODS: 1.16.2
