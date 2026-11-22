@@ -34,6 +34,10 @@ class WebRTCService {
   }
 
   // The coturn container runs next to the API, so reuse its host. Credentials match docker-compose.
+  // Must match TURN_USER / TURN_PASSWORD in haki-backend/.env (pass with --dart-define)
+  static const _turnUser = String.fromEnvironment('TURN_USER', defaultValue: 'user');
+  static const _turnPassword = String.fromEnvironment('TURN_PASSWORD', defaultValue: 'password');
+
   // ponytail: static TURN user/password; switch to time-limited TURN REST credentials before production
   static final _turnHost = Uri.parse(ApiService.baseUrl).host;
   final Map<String, dynamic> _config = iceConfig;
@@ -42,7 +46,7 @@ class WebRTCService {
   static final Map<String, dynamic> iceConfig = {
     'iceServers': [
       {'urls': 'stun:$_turnHost:3478'},
-      {'urls': 'turn:$_turnHost:3478', 'username': 'user', 'credential': 'password'},
+      {'urls': 'turn:$_turnHost:3478', 'username': _turnUser, 'credential': _turnPassword},
     ],
   };
 

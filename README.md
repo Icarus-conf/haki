@@ -23,8 +23,11 @@ Messages, media, stories and feed posts are encrypted on the device (AES-256-GCM
 
 ```bash
 cd haki-backend
+cp .env.example .env     # then set POSTGRES_PASSWORD, JWT_SECRET and TURN_PASSWORD
 docker compose up -d --build
 ```
+
+Generate the secrets with `openssl rand -hex 32`.
 
 This starts:
 
@@ -32,7 +35,7 @@ This starts:
 | --- | --- |
 | API + WebSocket | http://localhost:3000 |
 | Admin dashboard | http://localhost:3001 |
-| Postgres | localhost:5432 (user `user`, password `password`, db `haki_db`) |
+| Postgres | localhost:5432 (user, password and db from `.env`) |
 | TURN (calls) | localhost:3478 |
 
 The API runs in watch mode with the source mounted, so backend edits reload by themselves. Tables are created automatically on first start.
@@ -50,6 +53,9 @@ cd haki_mobile
 flutter pub get
 flutter run                      # pick a device, or add -d <device id>
 ```
+
+Calls use the TURN user and password from `.env`. Pass them to the app too:
+`--dart-define=TURN_USER=haki --dart-define=TURN_PASSWORD=...`
 
 The app talks to `http://localhost:3000` by default, which works for the iOS simulator, macOS, Windows and web. For anything else pass the server address:
 
@@ -107,7 +113,7 @@ The dashboard reads the API address from `NEXT_PUBLIC_API_URL` at build time.
 
 The same `docker-compose.yml` runs on any Linux VPS with Docker. Before going public:
 
-1. Change `JWT_SECRET`, the Postgres password and the TURN user in `haki-backend/docker-compose.yml` (or move them to an `.env` file).
+1. Use fresh, random values in `haki-backend/.env` for `JWT_SECRET`, `POSTGRES_PASSWORD` and `TURN_PASSWORD`.
 2. Put HTTPS in front of ports 3000 and 3001 (Caddy, nginx, or a Cloudflare Tunnel).
 3. Open UDP 3478 and 60000–60050 for the TURN server, or point the app at a hosted TURN service.
 4. Optional, for iOS push: set the `APNS_*` variables (commented out in the compose file) from an Apple Developer APNs key.

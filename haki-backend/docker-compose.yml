@@ -1,16 +1,14 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15
     container_name: haki_db
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: haki_db
-      TZ: Africa/Cairo
-    command: postgres -c timezone=Africa/Cairo
+      POSTGRES_USER: ${POSTGRES_USER:-haki}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in haki-backend/.env}
+      POSTGRES_DB: ${POSTGRES_DB:-haki_db}
+      TZ: ${TZ:-UTC}
+    command: postgres -c timezone=${TZ:-UTC}
     ports:
       - '5432:5432'
     volumes:
@@ -24,12 +22,12 @@ services:
     environment:
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
-      - DATABASE_USER=user
-      - DATABASE_PASSWORD=password
-      - DATABASE_NAME=haki_db
-      - JWT_SECRET=change-me
-      # Must match the db container: timestamp columns have no zone, so both sides read them as Cairo time
-      - TZ=Africa/Cairo
+      - DATABASE_USER=${POSTGRES_USER:-haki}
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in haki-backend/.env}
+      - DATABASE_NAME=${POSTGRES_DB:-haki_db}
+      - JWT_SECRET=${JWT_SECRET:?set JWT_SECRET in haki-backend/.env}
+      # Must match the db container: timestamp columns have no zone, so both sides read them in this zone
+      - TZ=${TZ:-UTC}
       # iOS push (Apple Developer → Keys → APNs key). Unset = pushes are only logged.
       # - APNS_KEY_ID=ABC123DEFG
       # - APNS_TEAM_ID=XYZ987TEAM
@@ -58,7 +56,7 @@ services:
     restart: always
     environment:
       - TURNSERVER_REALM=hakirealm
-      - TURNSERVER_USER=user:password
+      - TURNSERVER_USER=${TURN_USER:-haki}:${TURN_PASSWORD:?set TURN_PASSWORD in haki-backend/.env}
     ports:
       - "3478:3478"
       - "3478:3478/udp"
