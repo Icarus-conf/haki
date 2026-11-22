@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square&logo=nestjs&logoColor=white" alt="NestJS 11">
   <img src="https://img.shields.io/badge/self--host-docker%20compose-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Self-host with Docker Compose">
   <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20Android%20%7C%20macOS%20%7C%20Windows%20%7C%20Web-7B5CFF?style=flat-square" alt="Platforms">
+  <a href="https://buymeacoffee.com/icarus.dev"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-support-FFDD00?style=flat-square&logo=buymeacoffee&logoColor=black" alt="Buy me a coffee"></a>
 </p>
 
 <p align="center">
@@ -193,6 +194,14 @@ haki_mobile/lib
 haki-dashboard/src/app/dashboard
   one file per dashboard page
 ```
+
+## Support
+
+Haki is free and open source. If it's useful to you, you can support its development:
+
+<a href="https://buymeacoffee.com/icarus.dev"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-icarus.dev-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy me a coffee"></a>
+
+Starring the repo and sharing it helps too.
 
 ## License
 
